@@ -161,6 +161,7 @@ class Client(object):
         if options is None:
             options = pywsman.ClientOptions()
         doc = self.client.get(options, resource_uri)
+        # print doc
         item = 'Fault'
         fault = xml_find(doc, _SOAP_ENVELOPE, item)
         if fault is not None:
@@ -185,7 +186,7 @@ class Client(object):
         else:
             doc = self.client.invoke(options, resource_uri, method, data)
         item = "ReturnValue"
-        print doc
+        # print doc
         return_value = xml_find(doc, resource_uri, item).text
         if return_value != '0':
             raise Exception(doc)
@@ -203,12 +204,23 @@ class Client(object):
 
     def power_off(self):
         """Power off the box."""
-        # 8 is the magic enum for Power Cycle Off (Hard)
+        # 8 is the magic enum for Power Off - Soft
         payload = _generate_power_action_input('8')
         method = 'RequestPowerStateChange'
         options = pywsman.ClientOptions()
         options.add_selector('Name', 'Intel(r) AMT Power Management Service')
-        print payload
+        # print payload
+        self._wsman_invoke(
+            options, CIM_PowerManagementService, method, payload)
+
+    def power_cycle(self):
+        """Power cycle the box."""
+        # 5 is the magic enum for Power Cycle (Off Soft)
+        payload = _generate_power_action_input('5')
+        method = 'RequestPowerStateChange'
+        options = pywsman.ClientOptions()
+        options.add_selector('Name', 'Intel(r) AMT Power Management Service')
+        # print payload
         self._wsman_invoke(
             options, CIM_PowerManagementService, method, payload)
 
@@ -235,6 +247,7 @@ class Client(object):
                                   method, doc)
 
     def power_status(self):
+        # print CIM_AssociatedPowerManagementService
         return self._wsman_get(CIM_AssociatedPowerManagementService)
 
 

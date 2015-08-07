@@ -1,0 +1,119 @@
+#!/usr/bin/env python
+
+import argparse
+import ConfigParser
+import os
+import sys
+
+import appdirs
+
+import amt.amt
+
+appauthor = "sdague"
+appname = "amtctrl"
+
+confdir = appdirs.user_config_dir(appname, appauthor)
+config = ConfigParser.ConfigParser()
+confname = os.path.join(confdir, 'hosts.cfg')
+config.read(confname)
+
+def get_server(name):
+    if config.has_section(name):
+        return {
+            'host': config.get(name, 'host'),
+            'passwd': config.get(name, 'passwd')
+        }
+    else:
+        print("No config found for server (%s), "
+              "perhaps you need to add one via ``amtctrl add``")
+
+def list_servers():
+    print("Available servers (%d):" % len(config.sections()))
+    for item in config.sections():
+        print("    %s" % item)
+
+
+def add_server(name, host, passwd):
+    config.add_section(name)
+    config.set(name, 'host', host)
+    config.set(name, 'passwd', passwd)
+    # ensure the directory exists
+    if not os.path.exists(confdir):
+        os.makedirs(confdir)
+
+    with open(confname, 'w') as f:
+        config.write(f)
+
+def rm_server(name):
+    config.remove_section(name)
+    # ensure the directory exists
+    if not os.path.exists(confdir):
+        os.makedirs(confdir)
+
+    with open(confname, 'w') as f:
+        config.write(f)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser('amtctrl')
+    parser.add_argument('server', metavar='name',
+                   help='')
+    parser.add_argument('command', metavar='command', nargs='?',
+                   help='')
+    parser.add_argument('args', nargs=argparse.REMAINDER)
+    return parser.parse_args()
+
+def parse_args_add():
+    parser = argparse.ArgumentParser('amtctrl')
+    parser.add_argument('op', metavar='add',
+                   help='')
+    parser.add_argument('name', metavar='name',
+                   help='')
+    parser.add_argument('host', metavar='host',
+                   help='')
+    parser.add_argument('passwd', metavar='passwd',
+                   help='')
+    return parser.parse_args()
+
+def parse_args_rm():
+    parser = argparse.ArgumentParser('amtctrl')
+    parser.add_argument('op', metavar='remove',
+                   help='')
+    parser.add_argument('name', metavar='name',
+                   help='')
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    # if the "server" name is reserve word, run that command
+    if args.server == 'list':
+        return list_servers()
+    elif args.server == 'add':
+        add_args = parse_args_add()
+        return add_server(add_args.name, add_args.host, add_args.passwd)
+    elif args.server == 'rm':
+        rm_args = parse_args_rm()
+        return rm_server(rm_args.name)
+
+    server = get_server(args.server)
+    if not server:
+        return 1
+
+    client = amt.amt.Client(server['host'], server['passwd'])
+    if args.command == "on":
+        client.power_on()
+    elif args.command == "off":
+        client.power_off()
+    elif args.command == "reboot":
+        client.power_cycle()
+    elif args.command == "pxeboot":
+        client.pxe_next_boot()
+        client.power_cycle()
+    elif args.command == "status":
+       print(client.power_status())
+    else:
+        print("Unknown command %s - try one of on, off, reboot, pxeboot, status")
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -15,6 +15,7 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read().replace('.. :changelog:', '')
 
 requirements = [
+    'appdirs',
     'pywsman'
 ]
 
@@ -35,6 +36,7 @@ setup(
     ],
     package_dir={'amt':
                  'amt'},
+    scripts=['bin/amtctrl'],
     include_package_data=True,
     install_requires=requirements,
     license="BSD",

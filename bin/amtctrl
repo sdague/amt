@@ -56,12 +56,30 @@ def rm_server(name):
 
 def parse_args():
     parser = argparse.ArgumentParser('amtctrl')
+#                                      description=(
+# """
+# amtctrl acts of servers that you've registered with it to issue amt commands.
+
+# amtctrl list - list all servers registered
+# amtctrl add <name> <ip> <passwd> - register a server
+# amtctrl rm <name> - unregister a server
+
+# amtctrl <name> <command> - run an amt command on the server
+
+# command is one of:
+
+#   on - power on
+#   off - power off
+#   reboot - reboot
+#   pxeboot - reboot the machine and pxeboot on the next reboot cycle
+#   status - dump cim power status
+# """
+#     ))
     parser.add_argument('server', metavar='name',
-                   help='')
+                        help='')
     parser.add_argument('command', metavar='command', nargs='?',
-                   help='')
-    parser.add_argument('args', nargs=argparse.REMAINDER)
-    return parser.parse_args()
+                        help='')
+    return parser.parse_known_args()[0]
 
 def parse_args_add():
     parser = argparse.ArgumentParser('amtctrl')

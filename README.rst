@@ -47,8 +47,8 @@ include vPro.
 
  * `Intel NUC KIT Core Processor BLKNUC5I5MYHE <http://amzn.to/1OZshhF>`_
 
- This code gets tested with ``5i5MYHE`` NUCs as well as an older NUC
- that I have laying around.
+This code gets tested with ``5i5MYHE`` NUCs as well as an older NUC
+that I have laying around.
 
 
 Configuring AMT
@@ -74,19 +74,19 @@ machine enrollment
 To simplify the control commands ``amtcrtl`` has a machine
 registry. New machines are added via:
 
-.. code: bash
+.. :
 
    amtctrl add <name> <address> <amtpassword>
 
 You can see a list of all machines with:
 
-.. code: bash
+.. :
 
    amtctrl list
 
 And remove an existing machine with:
 
-.. code: bash
+.. :
 
    amtctrl rm <name>
 
@@ -96,7 +96,7 @@ controlling machines
 
 Once machines are controlled you have a number of options exposed:
 
-.. code: bash
+.. :
    amtctrl <name> <command>
 
 Command is one of:

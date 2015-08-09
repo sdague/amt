@@ -48,7 +48,7 @@ def get_request(uri, resource):
     return stub % {'uri': uri, 'resource': resource, 'uuid': uuid.uuid4()}
 
 
-def enable_remove_kvm(uri, passwd):
+def enable_remote_kvm(uri, passwd):
     stub = """<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd">
 <s:Header>
@@ -170,18 +170,6 @@ def enable_boot_config_request(uri):
 </s:Body></s:Envelope>"""  # noqa
     return stub % {'uri': uri, 'uuid': uuid.uuid4()}
 
-
-
-    returns = """<?xml version="1.0" encoding="UTF-8"?>
-    <a:Envelope xmlns:a="http://www.w3.org/2003/05/soap-envelope" xmlns:b="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:c="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:d="http://schemas.xmlsoap.org/ws/2005/02/trust" xmlns:e="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:f="http://schemas.dmtf.org/wbem/wsman/1/cimbinding.xsd" xmlns:g="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_PowerManagementService" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <a:Header>
-    <b:To>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</b:To>
-    <b:RelatesTo>uuid:fc505341-1cd4-1cd4-8002-6018dd4b3a84</b:RelatesTo>
-    <b:Action a:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_PowerManagementService/RequestPowerStateChangeResponse</b:Action>
-    <b:MessageID>uuid:00000000-8086-8086-8086-00000000004E</b:MessageID>
-    <c:ResourceURI>http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_PowerManagementService</c:ResourceURI></a:Header><a:Body><g:RequestPowerStateChange_OUTPUT><g:ReturnValue>0</g:ReturnValue></g:RequestPowerStateChange_OUTPUT></a:Body></a:Envelope>"""
-
-    pass
 
 # Local Variables:
 # turn off whitespace mode because xml is *so* long

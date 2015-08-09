@@ -74,19 +74,13 @@ machine enrollment
 To simplify the control commands ``amtcrtl`` has a machine
 registry. New machines are added via:
 
-.. :
-
-   amtctrl add <name> <address> <amtpassword>
+    amtctrl add <name> <address> <amtpassword>
 
 You can see a list of all machines with:
-
-.. :
 
    amtctrl list
 
 And remove an existing machine with:
-
-.. :
 
    amtctrl rm <name>
 
@@ -96,7 +90,6 @@ controlling machines
 
 Once machines are controlled you have a number of options exposed:
 
-.. :
    amtctrl <name> <command>
 
 Command is one of:

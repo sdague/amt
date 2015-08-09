@@ -30,12 +30,12 @@ POWER_STATES = {
 }
 
 
-def get_request(host, resource):
+def get_request(uri, resource):
     stub = """<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd">
    <s:Header>
        <wsa:Action s:mustUnderstand="true">http://schemas.xmlsoap.org/ws/2004/09/transfer/Get</wsa:Action>
-       <wsa:To s:mustUnderstand="true">%(host)s/wsman</wsa:To>
+       <wsa:To s:mustUnderstand="true">%(uri)s</wsa:To>
        <wsman:ResourceURI s:mustUnderstand="true">%(resource)s</wsman:ResourceURI>
        <wsa:MessageID s:mustUnderstand="true">uuid:%(uuid)s</wsa:MessageID>
        <wsa:ReplyTo>
@@ -45,15 +45,42 @@ def get_request(host, resource):
    <s:Body/>
 </s:Envelope>
 """  # noqa
-    return stub % {'host': host, 'resource': resource, 'uuid': uuid.uuid4()}
+    return stub % {'uri': uri, 'resource': resource, 'uuid': uuid.uuid4()}
 
 
-def power_state_request(host, power_state):
+def enable_remove_kvm(uri, passwd):
+    stub = """<?xml version="1.0" encoding="UTF-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd">
+<s:Header>
+<wsa:Action s:mustUnderstand="true">http://schemas.xmlsoap.org/ws/2004/09/transfer/Put</wsa:Action>
+<wsa:To s:mustUnderstand="true">%(uri)s</wsa:To>
+<wsman:ResourceURI s:mustUnderstand="true">http://intel.com/wbem/wscim/1/ips-schema/1/IPS_KVMRedirectionSettingData</wsman:ResourceURI>
+<wsa:MessageID s:mustUnderstand="true">uuid:%(uuid)s</wsa:MessageID>
+<wsa:ReplyTo>
+    <wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address>
+</wsa:ReplyTo>
+</s:Header>
+<s:Body>
+    <g:IPS_KVMRedirectionSettingData xmlns:g="http://intel.com/wbem/wscim/1/ips-schema/1/IPS_KVMRedirectionSettingData">
+    <g:DefaultScreen>0</g:DefaultScreen>
+    <g:ElementName>Intel(r) KVM Redirection Settings</g:ElementName>
+    <g:EnabledByMEBx>true</g:EnabledByMEBx>
+    <g:InstanceID>Intel(r) KVM Redirection Settings</g:InstanceID>
+    <g:Is5900PortEnabled>true</g:Is5900PortEnabled>
+    <g:OptInPolicy>false</g:OptInPolicy>
+    <g:RFBPassword>%(passwd)s</g:RFBPassword>
+    <g:SessionTimeout>3</g:SessionTimeout>
+    </g:IPS_KVMRedirectionSettingData>
+</s:Body></s:Envelope>"""  # noqa
+    return stub % {'uri': uri, 'passwd': passwd, 'uuid': uuid.uuid4()}
+
+
+def power_state_request(uri, power_state):
     stub = """<?xml version="1.0" encoding="UTF-8"?>
     <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:n1="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_PowerManagementService">
     <s:Header>
     <wsa:Action s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_PowerManagementService/RequestPowerStateChange</wsa:Action>
-    <wsa:To s:mustUnderstand="true">%(host)s/wsman</wsa:To>
+    <wsa:To s:mustUnderstand="true">%(uri)s</wsa:To>
     <wsman:ResourceURI s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_PowerManagementService</wsman:ResourceURI>
     <wsa:MessageID s:mustUnderstand="true">uuid:%(uuid)s</wsa:MessageID>
     <wsa:ReplyTo>
@@ -76,18 +103,19 @@ def power_state_request(host, power_state):
            </wsa:ReferenceParameters>
          </n1:ManagedElement>
        </n1:RequestPowerStateChange_INPUT>
-      </s:Body></s:Envelope>"""  # noqa
-    return stub % {'host': host,
+      </s:Body></s:Envelope>
+"""  # noqa
+    return stub % {'uri': uri,
                    'power_state': POWER_STATES[power_state],
                    'uuid': uuid.uuid4()}
 
 
-def change_boot_to_pxe_request(host):
+def change_boot_to_pxe_request(uri):
     stub = """<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:n1="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootConfigSetting">
 <s:Header>
 <wsa:Action s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootConfigSetting/ChangeBootOrder</wsa:Action>
-<wsa:To s:mustUnderstand="true">%(host)s/wsman</wsa:To>
+<wsa:To s:mustUnderstand="true">%(uri)s</wsa:To>
 <wsman:ResourceURI s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootConfigSetting</wsman:ResourceURI>
 <wsa:MessageID s:mustUnderstand="true">uuid:%(uuid)s</wsa:MessageID>
 <wsa:ReplyTo>
@@ -110,15 +138,15 @@ def change_boot_to_pxe_request(host):
      </n1:Source>
    </n1:ChangeBootOrder_INPUT>
 </s:Body></s:Envelope>"""  # noqa
-    return stub % {'host': host, 'uuid': uuid.uuid4()}
+    return stub % {'uri': uri, 'uuid': uuid.uuid4()}
 
 
-def enable_boot_config_request(host):
+def enable_boot_config_request(uri):
     stub = """<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:n1="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootService">
 <s:Header>
 <wsa:Action s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootService/SetBootConfigRole</wsa:Action>
-<wsa:To s:mustUnderstand="true">%(host)s/wsman</wsa:To>
+<wsa:To s:mustUnderstand="true">%(uri)s</wsa:To>
 <wsman:ResourceURI s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootService</wsman:ResourceURI>
 <wsa:MessageID s:mustUnderstand="true">uuid:%(uuid)s</wsa:MessageID>
 <wsa:ReplyTo><wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address></wsa:ReplyTo>
@@ -140,7 +168,7 @@ def enable_boot_config_request(host):
     <n1:Role>1</n1:Role>
 </n1:SetBootConfigRole_INPUT>
 </s:Body></s:Envelope>"""  # noqa
-    return stub % {'host': host, 'uuid': uuid.uuid4()}
+    return stub % {'uri': uri, 'uuid': uuid.uuid4()}
 
 
 

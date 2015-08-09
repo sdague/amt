@@ -17,9 +17,14 @@
 # Open Source software that acts as one of the few bits of example
 # code for this interface.
 
+import xml.dom.minidom
 from xml.etree import ElementTree
 
-import pywsman
+import requests
+from requests.auth import HTTPDigestAuth
+
+import wsman
+
 
 """CIM schema urls
 
@@ -52,217 +57,118 @@ AMT_PROTOCOL_PORT_MAP = {
     'https': 16993,
 }
 
-# XML generation routines
 
-
-def _generate_enable_boot_config_input():
-    """Generate Xmldoc as enable_boot_config input.
-
-    This generates a Xmldoc used as input for enable_boot_config.
-
-    :returns: Xmldoc.
-    """
-    method_input = "SetBootConfigRole_INPUT"
-    namespace = CIM_BootService
-    doc = pywsman.XmlDoc(method_input)
-    root = doc.root()
-    root.set_ns(namespace)
-
-    child = root.add(namespace, 'BootConfigSetting', None)
-    child.add(_ADDRESS, 'Address', _ANONYMOUS)
-
-    grand_child = child.add(_ADDRESS, 'ReferenceParameters', None)
-    grand_child.add(_WSMAN, 'ResourceURI', CIM_BootConfigSetting)
-    g_grand_child = grand_child.add(_WSMAN, 'SelectorSet', None)
-    g_g_grand_child = g_grand_child.add(_WSMAN, 'Selector',
-                                        'Intel(r) AMT: Boot Configuration 0')
-    g_g_grand_child.attr_add(_WSMAN, 'Name', 'InstanceID')
-    root.add(namespace, 'Role', '1')
-    return doc
-
-
-def _change_boot_order_input(device):
-    """Generate Xmldoc as change_boot_order input.
-
-    This generates a Xmldoc used as input for change_boot_order.
-
-    :param device: the boot device.
-    :returns: Xmldoc.
-    """
-    method_input = "ChangeBootOrder_INPUT"
-    namespace = CIM_BootConfigSetting
-    doc = pywsman.XmlDoc(method_input)
-    root = doc.root()
-    root.set_ns(namespace)
-
-    child = root.add(namespace, 'Source', None)
-    child.add(_ADDRESS, 'Address', _ANONYMOUS)
-
-    grand_child = child.add(_ADDRESS, 'ReferenceParameters', None)
-    grand_child.add(_WSMAN, 'ResourceURI', CIM_BootSourceSetting)
-    g_grand_child = grand_child.add(_WSMAN, 'SelectorSet', None)
-    g_g_grand_child = g_grand_child.add(_WSMAN, 'Selector', device)
-    g_g_grand_child.attr_add(_WSMAN, 'Name', 'InstanceID')
-    return doc
-
-
-def _generate_power_action_input(action):
-    """Generate Xmldoc as set_power_state input.
-
-    This generates a Xmldoc used as input for set_power_state.
-
-    :param action: the power action.
-    :returns: Xmldoc.
-    """
-    method_input = "RequestPowerStateChange_INPUT"
-    address = 'http://schemas.xmlsoap.org/ws/2004/08/addressing'
-    anonymous = ('http://schemas.xmlsoap.org/ws/2004/08/addressing/'
-                 'role/anonymous')
-    wsman = 'http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd'
-    namespace = CIM_PowerManagementService
-
-    doc = pywsman.XmlDoc(method_input)
-    root = doc.root()
-    root.set_ns(namespace)
-    root.add(namespace, 'PowerState', action)
-
-    child = root.add(namespace, 'ManagedElement', None)
-    child.add(address, 'Address', anonymous)
-
-    grand_child = child.add(address, 'ReferenceParameters', None)
-    grand_child.add(wsman, 'ResourceURI', CIM_ComputerSystem)
-
-    g_grand_child = grand_child.add(wsman, 'SelectorSet', None)
-    g_g_grand_child = g_grand_child.add(wsman, 'Selector', 'ManagedSystem')
-    g_g_grand_child.attr_add(wsman, 'Name', 'Name')
-    return doc
+def pp_xml(body):
+    """Pretty print format some XML so it's readable."""
+    pretty = xml.dom.minidom.parseString(body)
+    return pretty.toprettyxml(indent="  ")
 
 
 class Client(object):
     """AMT client.
 
-    Create a pywsman client to connect to the target server
+    Manage interactions with AMT host.
     """
     def __init__(self, address, password, username='admin', protocol='http'):
         port = AMT_PROTOCOL_PORT_MAP[protocol]
         path = '/wsman'
-        self.client = pywsman.Client(address, port, path, protocol,
-                                     username, password)
-
-    def _wsman_get(self, resource_uri, options=None):
-        """Get target server info
-
-        :param options: client options
-        :param resource_uri: a URI to an XML schema
-        :returns: XmlDoc object
-        :raises: AMTFailure if get unexpected response.
-        :raises: AMTConnectFailure if unable to connect to the server.
-        """
-        if options is None:
-            options = pywsman.ClientOptions()
-        doc = self.client.get(options, resource_uri)
-        # print doc
-        item = 'Fault'
-        fault = xml_find(doc, _SOAP_ENVELOPE, item)
-        if fault is not None:
-            Exception("Call to AMT with URI %(uri)s failed:"
-                              "got Fault %(fault)s" %
-                      {'uri': resource_uri, 'fault': fault.text})
-        return doc
-
-    def _wsman_invoke(self, options, resource_uri, method, data=None):
-        """Invoke method on target server
-
-        :param options: client options
-        :param resource_uri: a URI to an XML schema
-        :param method: invoke method
-        :param data: a XmlDoc as invoke input
-        :returns: XmlDoc object
-        :raises: AMTFailure if get unexpected response.
-        :raises: AMTConnectFailure if unable to connect to the server.
-        """
-        if data is None:
-            doc = self.client.invoke(options, resource_uri, method)
-        else:
-            doc = self.client.invoke(options, resource_uri, method, data)
-        item = "ReturnValue"
-        # print doc
-        return_value = xml_find(doc, resource_uri, item).text
-        if return_value != '0':
-            raise Exception(doc)
-        return doc
+        self.uri = "%(protocol)s://%(address)s:%(port)s%(path)s" % {
+            'address': address,
+            'protocol': protocol,
+            'port': port,
+            'path': path}
+        self.username = username
+        self.password = password
 
     def power_on(self):
         """Power on the box."""
-        # 2 is the magic enum for Power On
-        payload = _generate_power_action_input('2')
-        method = 'RequestPowerStateChange'
-        options = pywsman.ClientOptions()
-        options.add_selector('Name', 'Intel(r) AMT Power Management Service')
-        self._wsman_invoke(
-            options, CIM_PowerManagementService, method, payload)
+        payload = wsman.power_state_request(self.uri, "on")
+        resp = requests.post(self.uri,
+                             auth=HTTPDigestAuth(self.username, self.password),
+                             data=payload)
+        if resp.status_code == 200:
+            rv = _return_value(resp.content, CIM_PowerManagementService)
+            if rv == 0:
+                return 0
+            print(pp_xml(resp.content))
+        else:
+            print(resp.content)
+            return 1
 
     def power_off(self):
         """Power off the box."""
-        # 8 is the magic enum for Power Off - Soft
-        payload = _generate_power_action_input('8')
-        method = 'RequestPowerStateChange'
-        options = pywsman.ClientOptions()
-        options.add_selector('Name', 'Intel(r) AMT Power Management Service')
-        # print payload
-        self._wsman_invoke(
-            options, CIM_PowerManagementService, method, payload)
+        payload = wsman.power_state_request(self.uri, "off")
+        resp = requests.post(self.uri,
+                             auth=HTTPDigestAuth(self.username, self.password),
+                             data=payload)
+        if resp.status_code == 200:
+            rv = _return_value(resp.content, CIM_PowerManagementService)
+            if rv == 0:
+                return 0
+            print(pp_xml(resp.content))
+        else:
+            print(resp.content)
+            return 1
 
     def power_cycle(self):
         """Power cycle the box."""
-        # 5 is the magic enum for Power Cycle (Off Soft)
-        payload = _generate_power_action_input('5')
-        method = 'RequestPowerStateChange'
-        options = pywsman.ClientOptions()
-        options.add_selector('Name', 'Intel(r) AMT Power Management Service')
-        # print payload
-        self._wsman_invoke(
-            options, CIM_PowerManagementService, method, payload)
+        payload = wsman.power_state_request(self.uri, "reboot")
+        resp = requests.post(self.uri,
+                             auth=HTTPDigestAuth(self.username, self.password),
+                             data=payload)
+        if resp.status_code == 200:
+            rv = _return_value(resp.content, CIM_PowerManagementService)
+            if rv == 0:
+                return 0
+            print(pp_xml(resp.content))
+        else:
+            print(resp.content)
+            return 1
 
     def pxe_next_boot(self):
         """Sets the machine to PXE boot on it's next reboot
 
         Will default back to normal boot list on the reboot that follows.
         """
-        # we need 2 cim calls for this, one to request a boot order
-        # change... for unknown reasons.
-        payload = _change_boot_order_input('Intel(r) AMT: Force PXE Boot')
-        method = 'ChangeBootOrder'
-        options = pywsman.ClientOptions()
-        options.add_selector(
-            'InstanceID', 'Intel(r) AMT: Boot Configuration 0')
-        self._wsman_invoke(options, CIM_BootConfigSetting,
-                            method, payload)
+        payload = wsman.change_boot_to_pxe_request(self.uri)
+        resp = requests.post(self.uri,
+                             auth=HTTPDigestAuth(self.username, self.password),
+                             data=payload)
+        if resp.status_code == 200:
+            print(pp_xml(resp.content))
+            # rv = _return_value(resp.content, CIM_PowerManagementService)
+            # if rv != 0:
+            #     print(pp_xml(resp.content))
+            #     return 1
 
-        method = 'SetBootConfigRole'
-        doc = _generate_enable_boot_config_input()
-        options = pywsman.ClientOptions()
-        options.add_selector('Name', 'Intel(r) AMT Boot Service')
-        return self._wsman_invoke(options, CIM_BootService,
-                                  method, doc)
+        payload = wsman.enable_boot_config_request(self.uri)
+        resp = requests.post(self.uri,
+                             auth=HTTPDigestAuth(self.username, self.password),
+                             data=payload)
+        if resp.status_code == 200:
+            print(pp_xml(resp.content))
+            # rv = _return_value(resp.content, CIM_PowerManagementService)
+            # if rv != 0:
+            #     print(pp_xml(resp.content))
+            #     return 1
 
     def power_status(self):
-        # print CIM_AssociatedPowerManagementService
-        return self._wsman_get(CIM_AssociatedPowerManagementService)
+        payload = wsman.get_request(
+            self.uri,
+            CIM_AssociatedPowerManagementService)
+        resp = requests.post(self.uri,
+                             auth=HTTPDigestAuth(self.username, self.password),
+                             data=payload)
+        return pp_xml(resp.content)
 
 
-def xml_find(doc, namespace, item):
-    """Find the first element with namespace and item, in the XML doc
+def _return_value(content, ns):
+    """Find the return value in a CIM response.
 
-    :param doc: a doc object.
-    :param namespace: the namespace of the element.
-    :param item: the element name.
-    :returns: the element object or None
-    :raises: AMTConnectFailure if unable to connect to the server.
+    The xmlns is needed because everything in CIM is a million levels
+    of namespace indirection.
     """
-    if doc is None:
-        raise Exception()
-    tree = ElementTree.fromstring(doc.root().string())
-    query = ('.//{%(namespace)s}%(item)s' % {'namespace': namespace,
-                                             'item': item})
-    return tree.find(query)
+    doc = ElementTree.fromstring(content)
+    query = './/{%(ns)s}%(item)s' % {'ns': ns, 'item': 'ReturnValue'}
+    rv = doc.find(query)
+    return int(rv.text)

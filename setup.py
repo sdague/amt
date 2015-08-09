@@ -16,9 +16,11 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'appdirs',
+    'requests'
 ]
 
 test_requirements = [
+    'mock'
     # TODO: put package test requirements here
 ]
 

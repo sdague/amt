@@ -7,7 +7,7 @@ import sys
 
 import appdirs
 
-import amt.amt
+import amt.client
 
 appauthor = "sdague"
 appname = "amtctrl"
@@ -118,7 +118,7 @@ def main():
     if not server:
         return 1
 
-    client = amt.amt.Client(server['host'], server['passwd'])
+    client = amt.client.Client(server['host'], server['passwd'])
     if args.command == "on":
         client.power_on()
     elif args.command == "off":

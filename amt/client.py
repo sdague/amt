@@ -23,7 +23,7 @@ from xml.etree import ElementTree
 import requests
 from requests.auth import HTTPDigestAuth
 
-import wsman
+from amt import wsman
 
 
 """CIM schema urls

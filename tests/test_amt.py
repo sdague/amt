@@ -9,7 +9,6 @@ Tests for `amt` module.
 import mock
 import unittest
 
-from amt import amt
 from amt import wsman
 
 

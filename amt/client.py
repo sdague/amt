@@ -80,50 +80,36 @@ class Client(object):
         self.username = username
         self.password = password
 
-    def power_on(self):
-        """Power on the box."""
-        payload = wsman.power_state_request(self.uri, "on")
+    def post(self, payload, ns=None):
         resp = requests.post(self.uri,
                              auth=HTTPDigestAuth(self.username, self.password),
                              data=payload)
         if resp.status_code == 200:
-            rv = _return_value(resp.content, CIM_PowerManagementService)
-            if rv == 0:
+            if ns:
+                rv = _return_value(resp.content, ns)
+                if rv == 0:
+                    return 0
+                print(pp_xml(resp.content))
+            else:
                 return 0
-            print(pp_xml(resp.content))
         else:
             print(resp.content)
             return 1
+
+    def power_on(self):
+        """Power on the box."""
+        payload = wsman.power_state_request(self.uri, "on")
+        return self.post(payload, CIM_PowerManagementService)
 
     def power_off(self):
         """Power off the box."""
         payload = wsman.power_state_request(self.uri, "off")
-        resp = requests.post(self.uri,
-                             auth=HTTPDigestAuth(self.username, self.password),
-                             data=payload)
-        if resp.status_code == 200:
-            rv = _return_value(resp.content, CIM_PowerManagementService)
-            if rv == 0:
-                return 0
-            print(pp_xml(resp.content))
-        else:
-            print(resp.content)
-            return 1
+        return self.post(payload, CIM_PowerManagementService)
 
     def power_cycle(self):
         """Power cycle the box."""
         payload = wsman.power_state_request(self.uri, "reboot")
-        resp = requests.post(self.uri,
-                             auth=HTTPDigestAuth(self.username, self.password),
-                             data=payload)
-        if resp.status_code == 200:
-            rv = _return_value(resp.content, CIM_PowerManagementService)
-            if rv == 0:
-                return 0
-            print(pp_xml(resp.content))
-        else:
-            print(resp.content)
-            return 1
+        return self.post(payload, CIM_PowerManagementService)
 
     def pxe_next_boot(self):
         """Sets the machine to PXE boot on it's next reboot
@@ -131,26 +117,10 @@ class Client(object):
         Will default back to normal boot list on the reboot that follows.
         """
         payload = wsman.change_boot_to_pxe_request(self.uri)
-        resp = requests.post(self.uri,
-                             auth=HTTPDigestAuth(self.username, self.password),
-                             data=payload)
-        if resp.status_code == 200:
-            print(pp_xml(resp.content))
-            # rv = _return_value(resp.content, CIM_PowerManagementService)
-            # if rv != 0:
-            #     print(pp_xml(resp.content))
-            #     return 1
+        self.post(payload)
 
         payload = wsman.enable_boot_config_request(self.uri)
-        resp = requests.post(self.uri,
-                             auth=HTTPDigestAuth(self.username, self.password),
-                             data=payload)
-        if resp.status_code == 200:
-            print(pp_xml(resp.content))
-            # rv = _return_value(resp.content, CIM_PowerManagementService)
-            # if rv != 0:
-            #     print(pp_xml(resp.content))
-            #     return 1
+        self.post(payload)
 
     def power_status(self):
         payload = wsman.get_request(

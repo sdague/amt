@@ -45,7 +45,7 @@ AMT is branded as vPro in products by Intel. It is found in many Intel
 based laptops. There are also specific models of Intel NUC that
 include vPro.
 
- * `Intel NUC KIT Core Processor BLKNUC5I5MYHE <http://amzn.to/1OZshhF>`_
+* `Intel NUC KIT Core Processor BLKNUC5I5MYHE <http://amzn.to/1OZshhF>`_
 
 This code gets tested with ``5i5MYHE`` NUCs as well as an older NUC
 that I have laying around.

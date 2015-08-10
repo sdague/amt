@@ -93,7 +93,8 @@ class Client(object):
             else:
                 return 0
         else:
-            print(resp.content)
+            print "Status: %s" % resp.status_code
+            print(pp_xml(resp.content))
             return 1
 
     def power_on(self):
@@ -130,6 +131,11 @@ class Client(object):
                              auth=HTTPDigestAuth(self.username, self.password),
                              data=payload)
         return pp_xml(resp.content)
+
+    def enable_vnc(self):
+        payload = wsman.enable_remote_kvm(self.uri, self.password)
+        print(payload)
+        self.post(payload)
 
 
 def _return_value(content, ns):

@@ -69,7 +69,7 @@ def enable_remote_kvm(uri, passwd):
     <g:Is5900PortEnabled>true</g:Is5900PortEnabled>
     <g:OptInPolicy>false</g:OptInPolicy>
     <g:RFBPassword>%(passwd)s</g:RFBPassword>
-    <g:SessionTimeout>3</g:SessionTimeout>
+    <g:SessionTimeout>300</g:SessionTimeout>
     </g:IPS_KVMRedirectionSettingData>
 </s:Body></s:Envelope>"""  # noqa
     return stub % {'uri': uri, 'passwd': passwd, 'uuid': uuid.uuid4()}
@@ -172,6 +172,5 @@ def enable_boot_config_request(uri):
 
 
 # Local Variables:
-# turn off whitespace mode because xml is *so* long
 # eval: (whitespace-mode -1)
 # End:

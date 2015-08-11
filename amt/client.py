@@ -82,6 +82,8 @@ class Client(object):
 
     def post(self, payload, ns=None):
         resp = requests.post(self.uri,
+                             headers={'content-type':
+                                      'application/soap+xml;charset=UTF-8'},
                              auth=HTTPDigestAuth(self.username, self.password),
                              data=payload)
         if resp.status_code == 200:
@@ -134,8 +136,19 @@ class Client(object):
 
     def enable_vnc(self):
         payload = wsman.enable_remote_kvm(self.uri, self.password)
-        print(payload)
         self.post(payload)
+        payload = wsman.kvm_redirect(self.uri)
+        self.post(payload)
+
+    def vnc_status(self):
+        payload = wsman.get_request(
+            self.uri,
+            ('http://intel.com/wbem/wscim/1/ips-schema/1/'
+             'IPS_KVMRedirectionSettingData'))
+        resp = requests.post(self.uri,
+                             auth=HTTPDigestAuth(self.username, self.password),
+                             data=payload)
+        return pp_xml(resp.content)
 
 
 def _return_value(content, ns):

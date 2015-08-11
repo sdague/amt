@@ -61,18 +61,39 @@ def enable_remote_kvm(uri, passwd):
 </wsa:ReplyTo>
 </s:Header>
 <s:Body>
-    <g:IPS_KVMRedirectionSettingData xmlns:g="http://intel.com/wbem/wscim/1/ips-schema/1/IPS_KVMRedirectionSettingData">
-    <g:DefaultScreen>0</g:DefaultScreen>
-    <g:ElementName>Intel(r) KVM Redirection Settings</g:ElementName>
-    <g:EnabledByMEBx>true</g:EnabledByMEBx>
-    <g:InstanceID>Intel(r) KVM Redirection Settings</g:InstanceID>
-    <g:Is5900PortEnabled>true</g:Is5900PortEnabled>
-    <g:OptInPolicy>false</g:OptInPolicy>
-    <g:RFBPassword>%(passwd)s</g:RFBPassword>
-    <g:SessionTimeout>300</g:SessionTimeout>
-    </g:IPS_KVMRedirectionSettingData>
-</s:Body></s:Envelope>"""  # noqa
+<g:IPS_KVMRedirectionSettingData xmlns:g="http://intel.com/wbem/wscim/1/ips-schema/1/IPS_KVMRedirectionSettingData">
+<g:DefaultScreen>0</g:DefaultScreen>
+<g:ElementName>Intel(r) KVM Redirection Settings</g:ElementName>
+<g:EnabledByMEBx>true</g:EnabledByMEBx>
+<g:InstanceID>Intel(r) KVM Redirection Settings</g:InstanceID>
+<g:Is5900PortEnabled>true</g:Is5900PortEnabled>
+<g:OptInPolicy>false</g:OptInPolicy>
+<g:RFBPassword>%(passwd)s</g:RFBPassword>
+<g:SessionTimeout>0</g:SessionTimeout>
+</g:IPS_KVMRedirectionSettingData>
+</s:Body>
+</s:Envelope>"""  # noqa
     return stub % {'uri': uri, 'passwd': passwd, 'uuid': uuid.uuid4()}
+
+
+def kvm_redirect(uri):
+    stub = """<?xml version="1.0" encoding="UTF-8"?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:n1="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_KVMRedirectionSAP">
+<s:Header>
+<wsa:Action s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_KVMRedirectionSAP/RequestStateChange</wsa:Action>
+<wsa:To s:mustUnderstand="true">%(uri)s</wsa:To>
+<wsman:ResourceURI s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_KVMRedirectionSAP</wsman:ResourceURI>
+<wsa:MessageID s:mustUnderstand="true">uuid:%(uuid)s</wsa:MessageID>
+<wsa:ReplyTo>
+<wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address>
+</wsa:ReplyTo>
+</s:Header>
+<s:Body>
+<n1:RequestStateChange_INPUT>
+<n1:RequestedState>2</n1:RequestedState>
+</n1:RequestStateChange_INPUT>
+</s:Body></s:Envelope>"""  # noqa
+    return stub % {'uri': uri, 'uuid': uuid.uuid4()}
 
 
 def power_state_request(uri, power_state):

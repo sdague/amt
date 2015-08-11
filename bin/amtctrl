@@ -84,11 +84,15 @@ def main():
         client.power_cycle()
     elif args.command == "status":
        print(client.power_status())
-    # elif args.command == "vnc":
-    #     client.enable_vnc()
-    #     print("VNC enabled on port 5900 with AMT password")
+    elif args.command == "vnc":
+         client.enable_vnc()
+         print("VNC enabled on port 5900 with AMT password")
+    elif args.command == "vncstatus":
+         print(client.vnc_status())
     else:
-        print("Unknown command %s - try one of on, off, reboot, pxeboot, status")
+        print(("Unknown command %s"
+               "try one of on, off, reboot, pxeboot, status, vnc, vncstatus")
+              % args.command)
 
 if __name__ == "__main__":
     sys.exit(main())

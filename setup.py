@@ -26,7 +26,7 @@ test_requirements = [
 
 setup(
     name='amt',
-    version='0.1.0',
+    version='0.2.0',
     description="Tools for interacting with Intel's AMT",
     long_description=readme + '\n\n' + history,
     author="Sean Dague",

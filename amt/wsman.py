@@ -30,6 +30,12 @@ POWER_STATES = {
 }
 
 
+def friendly_power_state(state):
+    for k, v in POWER_STATES.items():
+        if v == int(state):
+            return k
+
+
 def get_request(uri, resource):
     stub = """<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd">

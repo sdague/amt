@@ -6,6 +6,7 @@ import sys
 
 import amt.client
 import amt.hostdb
+import amt.wsman
 
 def parse_args():
     parser = argparse.ArgumentParser('amtctrl')
@@ -83,7 +84,7 @@ def main():
         client.pxe_next_boot()
         client.power_cycle()
     elif args.command == "status":
-       print(client.power_status())
+       print(amt.wsman.friendly_power_state(client.power_status()))
     elif args.command == "vnc":
          client.enable_vnc()
          print("VNC enabled on port 5900 with AMT password")

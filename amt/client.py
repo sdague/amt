@@ -132,7 +132,11 @@ class Client(object):
         resp = requests.post(self.uri,
                              auth=HTTPDigestAuth(self.username, self.password),
                              data=payload)
-        return pp_xml(resp.content)
+        value = _find_value(
+            resp.content,
+            CIM_AssociatedPowerManagementService,
+            "PowerState")
+        return value
 
     def enable_vnc(self):
         payload = wsman.enable_remote_kvm(self.uri, self.password)
@@ -149,6 +153,18 @@ class Client(object):
                              auth=HTTPDigestAuth(self.username, self.password),
                              data=payload)
         return pp_xml(resp.content)
+
+
+def _find_value(content, ns, key):
+    """Find the return value in a CIM response.
+
+    The xmlns is needed because everything in CIM is a million levels
+    of namespace indirection.
+    """
+    doc = ElementTree.fromstring(content)
+    query = './/{%(ns)s}%(item)s' % {'ns': ns, 'item': key}
+    rv = doc.find(query)
+    return rv.text
 
 
 def _return_value(content, ns):

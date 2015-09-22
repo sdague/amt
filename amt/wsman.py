@@ -29,6 +29,14 @@ POWER_STATES = {
     'reboot': 5
 }
 
+# Valid boot devices
+BOOT_DEVICES = {
+    'pxe': 'Intel(r) AMT: Force PXE Boot',
+    'hd': 'Intel(r) AMT: Force Hard-drive Boot',
+    'cd': 'Intel(r) AMT: Force CD/DVD Boot',
+}
+
+
 
 def friendly_power_state(state):
     for k, v in POWER_STATES.items():
@@ -138,6 +146,12 @@ def power_state_request(uri, power_state):
 
 
 def change_boot_to_pxe_request(uri):
+    return change_boot_order_request(
+        uri, boot_device='pxe')
+
+
+def change_boot_order_request(uri, boot_device):
+    assert boot_device in BOOT_DEVICES
     stub = """<?xml version="1.0" encoding="UTF-8"?>
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd" xmlns:n1="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootConfigSetting">
 <s:Header>
@@ -159,13 +173,14 @@ def change_boot_to_pxe_request(uri):
         <wsa:ReferenceParameters>
             <wsman:ResourceURI>http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootSourceSetting</wsman:ResourceURI>
             <wsman:SelectorSet>
-                <wsman:Selector wsman:Name="InstanceID">Intel(r) AMT: Force PXE Boot</wsman:Selector>
+                <wsman:Selector wsman:Name="InstanceID">%(boot_device)s</wsman:Selector>
             </wsman:SelectorSet>
          </wsa:ReferenceParameters>
      </n1:Source>
    </n1:ChangeBootOrder_INPUT>
 </s:Body></s:Envelope>"""  # noqa
-    return stub % {'uri': uri, 'uuid': uuid.uuid4()}
+    return stub % {'uri': uri, 'uuid': uuid.uuid4(),
+                   'boot_device': BOOT_DEVICES[boot_device]}
 
 
 def enable_boot_config_request(uri):

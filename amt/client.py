@@ -115,11 +115,18 @@ class Client(object):
         return self.post(payload, CIM_PowerManagementService)
 
     def pxe_next_boot(self):
-        """Sets the machine to PXE boot on it's next reboot
+        """Sets the machine to PXE boot on its next reboot
 
         Will default back to normal boot list on the reboot that follows.
         """
-        payload = wsman.change_boot_to_pxe_request(self.uri)
+        self.set_next_boot(boot_device='pxe')
+
+    def set_next_boot(self, boot_device):
+        """Sets the machine to boot to boot_device on its next reboot
+
+        Will default back to normal boot list on the reboot that follows.
+        """
+        payload = wsman.change_boot_order_request(self.uri, boot_device)
         self.post(payload)
 
         payload = wsman.enable_boot_config_request(self.uri)

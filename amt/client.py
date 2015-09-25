@@ -44,12 +44,6 @@ CIM_ComputerSystem = SCHEMA_BASE + 'CIM_ComputerSystem'
 CIM_BootConfigSetting = SCHEMA_BASE + 'CIM_BootConfigSetting'
 CIM_BootSourceSetting = SCHEMA_BASE + 'CIM_BootSourceSetting'
 
-# Additional useful constants
-_SOAP_ENVELOPE = 'http://www.w3.org/2003/05/soap-envelope'
-_ADDRESS = 'http://schemas.xmlsoap.org/ws/2004/08/addressing'
-_ANONYMOUS = 'http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous'
-_WSMAN = 'http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd'
-
 
 # magic ports to connect to
 AMT_PROTOCOL_PORT_MAP = {

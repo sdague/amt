@@ -38,19 +38,8 @@ class TestXMLGen(BaseTestCase):
         res = ('http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/'
                'CIM_AssociatedPowerManagementService')
 
-        shouldbe = """<?xml version="1.0" encoding="UTF-8"?>
-<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd">
-<s:Header>
-<wsa:Action s:mustUnderstand="true">http://schemas.xmlsoap.org/ws/2004/09/transfer/Get</wsa:Action>
-<wsa:To s:mustUnderstand="true">http://10.42.0.50:16992/wsman</wsa:To>
-<wsman:ResourceURI s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_AssociatedPowerManagementService</wsman:ResourceURI>
-<wsa:MessageID s:mustUnderstand="true">uuid:00000000-1111-2222-3333-444455556666</wsa:MessageID>
-<wsa:ReplyTo>
-<wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address>
-</wsa:ReplyTo>
-</s:Header>
-<s:Body/>
-</s:Envelope>"""  # noqa
+        shouldbe = """<?xml version='1.0' encoding='UTF-8'?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsman="http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd"><s:Header><wsa:Action s:mustUnderstand="true">http://schemas.xmlsoap.org/ws/2004/09/transfer/Get</wsa:Action><wsa:To s:mustUnderstand="true">http://10.42.0.50:16992/wsman</wsa:To><wsman:ResourceURI s:mustUnderstand="true">http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_AssociatedPowerManagementService</wsman:ResourceURI><wsa:MessageID s:mustUnderstand="true">uuid:00000000-1111-2222-3333-444455556666</wsa:MessageID><wsa:ReplyTo><wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address></wsa:ReplyTo></s:Header><s:Body /></s:Envelope>"""  # noqa
 
         self.assertXmlEqual(wsman.get_request(uri, res), shouldbe)
 

@@ -95,7 +95,7 @@ class Client(object):
             else:
                 return 0
         else:
-            print "Status: %s" % resp.status_code
+            print("Status: %s" % resp.status_code)
             print(pp_xml(resp.content))
             return 1
 

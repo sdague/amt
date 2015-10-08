@@ -26,7 +26,7 @@ test_requirements = [
 
 setup(
     name='amt',
-    version='0.2.0',
+    version='0.3.0',
     description="Tools for interacting with Intel's AMT",
     long_description=readme + '\n\n' + history,
     author="Sean Dague",
@@ -40,13 +40,13 @@ setup(
     scripts=['bin/amtctrl'],
     include_package_data=True,
     install_requires=requirements,
-    license="BSD",
+    license="Apache",
     zip_safe=False,
     keywords='amt',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         "Programming Language :: Python :: 2",
         'Programming Language :: Python :: 2.7',

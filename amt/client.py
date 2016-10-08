@@ -23,7 +23,7 @@ from xml.etree import ElementTree
 import requests
 from requests.auth import HTTPDigestAuth
 
-import wsman
+import amt.wsman
 
 
 """CIM schema urls
@@ -101,17 +101,17 @@ class Client(object):
 
     def power_on(self):
         """Power on the box."""
-        payload = wsman.power_state_request(self.uri, "on")
+        payload = amt.wsman.power_state_request(self.uri, "on")
         return self.post(payload, CIM_PowerManagementService)
 
     def power_off(self):
         """Power off the box."""
-        payload = wsman.power_state_request(self.uri, "off")
+        payload = amt.wsman.power_state_request(self.uri, "off")
         return self.post(payload, CIM_PowerManagementService)
 
     def power_cycle(self):
         """Power cycle the box."""
-        payload = wsman.power_state_request(self.uri, "reboot")
+        payload = amt.wsman.power_state_request(self.uri, "reboot")
         return self.post(payload, CIM_PowerManagementService)
 
     def pxe_next_boot(self):
@@ -126,14 +126,14 @@ class Client(object):
 
         Will default back to normal boot list on the reboot that follows.
         """
-        payload = wsman.change_boot_order_request(self.uri, boot_device)
+        payload = amt.wsman.change_boot_order_request(self.uri, boot_device)
         self.post(payload)
 
-        payload = wsman.enable_boot_config_request(self.uri)
+        payload = amt.wsman.enable_boot_config_request(self.uri)
         self.post(payload)
 
     def power_status(self):
-        payload = wsman.get_request(
+        payload = amt.wsman.get_request(
             self.uri,
             CIM_AssociatedPowerManagementService)
         resp = requests.post(self.uri,
@@ -146,13 +146,13 @@ class Client(object):
         return value
 
     def enable_vnc(self):
-        payload = wsman.enable_remote_kvm(self.uri, self.password)
+        payload = amt.wsman.enable_remote_kvm(self.uri, self.password)
         self.post(payload)
-        payload = wsman.kvm_redirect(self.uri)
+        payload = amt.wsman.kvm_redirect(self.uri)
         self.post(payload)
 
     def vnc_status(self):
-        payload = wsman.get_request(
+        payload = amt.wsman.get_request(
             self.uri,
             ('http://intel.com/wbem/wscim/1/ips-schema/1/'
              'IPS_KVMRedirectionSettingData'))

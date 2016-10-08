@@ -10,7 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import ConfigParser
+import configparser
 import os
 
 import appdirs
@@ -23,7 +23,7 @@ class HostDB(object):
     def __init__(self):
         self.confdir = appdirs.user_config_dir(appname, appauthor)
         self.confname = os.path.join(self.confdir, 'hosts.cfg')
-        self.config = ConfigParser.ConfigParser()
+        self.config = configparser.ConfigParser()
         self.config.read(self.confname)
 
     def list_servers(self):

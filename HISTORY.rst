@@ -3,6 +3,10 @@
 History
 -------
 
+0.4.0 (2016-10-10)
+------------------
+* python 3 fixes and testing (thanks Rixillo)
+
 0.3.0 (2015-10-08)
 ------------------
 * python 3 print fix (thanks Mike Nawrocki)

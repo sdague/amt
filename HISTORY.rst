@@ -3,6 +3,10 @@
 History
 -------
 
+0.5.0 (2016-10-20)
+------------------
+* python 2 fixes for python 3 issues (thanks Chen Rotem Levy)
+
 0.4.0 (2016-10-10)
 ------------------
 * python 3 fixes and testing (thanks Rixillo)

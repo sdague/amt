@@ -7,7 +7,7 @@ test_amt
 Tests for `amt` module's wsman.py file
 """
 import mock
-import unittest
+import testtools
 
 from amt import wsman
 
@@ -16,7 +16,7 @@ def fake_uuid4():
     return "00000000-1111-2222-3333-444455556666"
 
 
-class BaseTestCase(unittest.TestCase):
+class BaseTestCase(testtools.TestCase):
 
     def assertXmlEqual(self, one, two):
         one = one.strip()

@@ -29,9 +29,6 @@ class BaseTestCase(testtools.TestCase):
 
 class TestXMLGen(BaseTestCase):
 
-    def setUp(self):
-        pass
-
     @mock.patch('uuid.uuid4', fake_uuid4)
     def test_get_request(self):
         uri = 'http://10.42.0.50:16992/wsman'
@@ -94,19 +91,10 @@ class TestXMLGen(BaseTestCase):
                           wsman.change_boot_order_request,
                           uri, 'pxe2')
 
-    def tearDown(self):
-        pass
-
 
 class TestAmt(testtools.TestCase):
 
-    def setUp(self):
-        pass
-
     def test_something(self):
-        pass
-
-    def tearDown(self):
         pass
 
 # Local Variables:

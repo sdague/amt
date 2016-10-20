@@ -94,12 +94,11 @@ class TestXMLGen(BaseTestCase):
                           wsman.change_boot_order_request,
                           uri, 'pxe2')
 
-
     def tearDown(self):
         pass
 
 
-class TestAmt(unittest.TestCase):
+class TestAmt(testtools.TestCase):
 
     def setUp(self):
         pass

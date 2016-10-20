@@ -16,7 +16,8 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'appdirs',
-    'requests'
+    'requests',
+    'six',
 ]
 
 test_requirements = [

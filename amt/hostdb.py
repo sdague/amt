@@ -10,7 +10,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import configparser
+from six.moves import configparser
 import os
 
 import appdirs

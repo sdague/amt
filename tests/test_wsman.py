@@ -92,6 +92,32 @@ class TestXMLGen(BaseTestCase):
                           uri, 'pxe2')
 
 
+class TestFriendlyPowerState(testtools.TestCase):
+
+    def test_power_on(self):
+        self.assertEqual(wsman.friendly_power_state('2'), 'on')
+        self.assertEqual(wsman.friendly_power_state(2), 'on')
+
+    def test_power_off(self):
+        self.assertEqual(wsman.friendly_power_state('8'), 'off')
+        self.assertEqual(wsman.friendly_power_state(8), 'off')
+
+    def test_standby(self):
+        self.assertEqual(wsman.friendly_power_state('4'), 'standby')
+        self.assertEqual(wsman.friendly_power_state(4), 'standby')
+
+    def test_reboot(self):
+        self.assertEqual(wsman.friendly_power_state('5'), 'reboot')
+        self.assertEqual(wsman.friendly_power_state(5), 'reboot')
+
+    def test_no_state(self):
+        self.assertIsNone(wsman.friendly_power_state('42'))
+        self.assertIsNone(wsman.friendly_power_state(42))
+
+    def test_non_integer(self):
+        self.assertRaises(ValueError, wsman.friendly_power_state, 'not-a-number')
+
+
 class TestAmt(testtools.TestCase):
 
     def test_something(self):

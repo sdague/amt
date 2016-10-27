@@ -26,7 +26,8 @@ import uuid
 POWER_STATES = {
     'on': 2,
     'off': 8,
-    'reboot': 5
+    'standby': 4,
+    'reboot': 5,
 }
 
 # Valid boot devices
@@ -36,12 +37,13 @@ BOOT_DEVICES = {
     'cd': 'Intel(r) AMT: Force CD/DVD Boot',
 }
 
-
+FRIENDLY_POWER_STATE = {v: k for (k, v) in POWER_STATES.items()}
 
 def friendly_power_state(state):
-    for k, v in POWER_STATES.items():
-        if v == int(state):
-            return k
+    try:
+        return FRIENDLY_POWER_STATE[int(state)]
+    except KeyError:
+        return
 
 
 def get_request(uri, resource):

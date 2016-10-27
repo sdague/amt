@@ -3,6 +3,10 @@
 History
 -------
 
+0.6.0 (2016-10-27)
+------------------
+* add support for stand-by power state (thanks Chen Rotem Levy)
+
 0.5.0 (2016-10-20)
 ------------------
 * python 2 fixes for python 3 issues (thanks Chen Rotem Levy)

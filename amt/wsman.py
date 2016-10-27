@@ -39,11 +39,9 @@ BOOT_DEVICES = {
 
 FRIENDLY_POWER_STATE = {v: k for (k, v) in POWER_STATES.items()}
 
+
 def friendly_power_state(state):
-    try:
-        return FRIENDLY_POWER_STATE[int(state)]
-    except KeyError:
-        return
+    return FRIENDLY_POWER_STATE.get(int(state), 'unknown')
 
 
 def get_request(uri, resource):

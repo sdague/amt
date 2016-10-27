@@ -110,9 +110,9 @@ class TestFriendlyPowerState(testtools.TestCase):
         self.assertEqual(wsman.friendly_power_state('5'), 'reboot')
         self.assertEqual(wsman.friendly_power_state(5), 'reboot')
 
-    def test_no_state(self):
-        self.assertIsNone(wsman.friendly_power_state('42'))
-        self.assertIsNone(wsman.friendly_power_state(42))
+    def test_unknown(self):
+        self.assertEqual(wsman.friendly_power_state('42'), 'unknown')
+        self.assertEqual(wsman.friendly_power_state(42), 'unknown')
 
     def test_non_integer(self):
         self.assertRaises(ValueError, wsman.friendly_power_state, 'not-a-number')

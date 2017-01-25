@@ -70,10 +70,18 @@ def main():
         return db.rm_server(rm_args.name)
 
     server = db.get_server(args.server)
-    if not server:
-        return 1
+    if server:
+        host = server['host']
+        passwd = server['passwd']
+    else:
+        host = args.server
+        if sys.stdin.isatty():
+            from getpass import getpass
+            passwd = getpass()
+        else:
+            passwd = sys.stdin.readline().rstrip('\r\n')
 
-    client = amt.client.Client(server['host'], server['passwd'])
+    client = amt.client.Client(host, passwd)
     if args.command == "on":
         client.power_on()
     elif args.command == "off":

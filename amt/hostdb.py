@@ -54,6 +54,3 @@ class HostDB(object):
                 'host': self.config.get(name, 'host'),
                 'passwd': self.config.get(name, 'passwd')
             }
-        else:
-            print("No config found for server (%s), "
-                  "perhaps you need to add one via ``amtctrl add``")

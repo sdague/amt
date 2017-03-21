@@ -31,6 +31,10 @@ def parse_args():
 #     ))
     parser.add_argument('server', metavar='name',
                         help='')
+    parser.add_argument('-p', '--prompt-pass',
+                        dest='prompt', action='store_true',
+                        default=False,
+                        help='Prompt for password, bypass database')
     parser.add_argument('command', metavar='command', nargs='?',
                         help='')
     return parser.parse_known_args()[0]
@@ -69,11 +73,22 @@ def main():
         rm_args = parse_args_rm()
         return db.rm_server(rm_args.name)
 
-    server = db.get_server(args.server)
-    if not server:
-        return 1
+    if args.prompt:
+        host = args.server
+        if sys.stdin.isatty():
+            from getpass import getpass
+            passwd = getpass()
+        else:
+            passwd = sys.stdin.readline().rstrip('\r\n')
+    else:
+        server = db.get_server(args.server)
+        if not server:
+            print("Server %s not found in hostdb" % args.server)
+            return 1
+        host = server['host']
+        passwd = server['passwd']
 
-    client = amt.client.Client(server['host'], server['passwd'])
+    client = amt.client.Client(host, passwd)
     if args.command == "on":
         client.power_on()
     elif args.command == "off":

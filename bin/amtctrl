@@ -4,6 +4,8 @@ import argparse
 import os
 import sys
 
+import requests
+
 import amt.client
 import amt.hostdb
 import amt.wsman
@@ -89,26 +91,29 @@ def main():
         passwd = server['passwd']
 
     client = amt.client.Client(host, passwd)
-    if args.command == "on":
-        client.power_on()
-    elif args.command == "off":
-        client.power_off()
-    elif args.command == "reboot":
-        client.power_cycle()
-    elif args.command == "pxeboot":
-        client.pxe_next_boot()
-        client.power_cycle()
-    elif args.command == "status":
-       print(amt.wsman.friendly_power_state(client.power_status()))
-    elif args.command == "vnc":
-         client.enable_vnc()
-         print("VNC enabled on port 5900 with AMT password")
-    elif args.command == "vncstatus":
-         print(client.vnc_status())
-    else:
-        print(("Unknown command %s"
-               "try one of on, off, reboot, pxeboot, status, vnc, vncstatus")
-              % args.command)
+    try:
+        if args.command == "on":
+            client.power_on()
+        elif args.command == "off":
+            client.power_off()
+        elif args.command == "reboot":
+            client.power_cycle()
+        elif args.command == "pxeboot":
+            client.pxe_next_boot()
+            client.power_cycle()
+        elif args.command == "status":
+           print(amt.wsman.friendly_power_state(client.power_status()))
+        elif args.command == "vnc":
+             client.enable_vnc()
+             print("VNC enabled on port 5900 with AMT password")
+        elif args.command == "vncstatus":
+             print(client.vnc_status())
+        else:
+            print(("Unknown command %s"
+                   "try one of on, off, reboot, pxeboot, status, vnc, vncstatus")
+                  % args.command)
+    except requests.exceptions.HTTPError as e:
+        print("Error: %s" % e)
 
 if __name__ == "__main__":
     sys.exit(main())

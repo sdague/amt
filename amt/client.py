@@ -86,18 +86,14 @@ class Client(object):
                                       'application/soap+xml;charset=UTF-8'},
                              auth=HTTPDigestAuth(self.username, self.password),
                              data=payload)
-        if resp.status_code == 200:
-            if ns:
-                rv = _return_value(resp.content, ns)
-                if rv == 0:
-                    return 0
-                print(pp_xml(resp.content))
-            else:
+        resp.raise_for_status()
+        if ns:
+            rv = _return_value(resp.content, ns)
+            if rv == 0:
                 return 0
-        else:
-            print("Status: %s" % resp.status_code)
             print(pp_xml(resp.content))
-            return 1
+        else:
+            return 0
 
     def power_on(self):
         """Power on the box."""
@@ -139,6 +135,7 @@ class Client(object):
         resp = requests.post(self.uri,
                              auth=HTTPDigestAuth(self.username, self.password),
                              data=payload)
+        resp.raise_for_status()
         value = _find_value(
             resp.content,
             CIM_AssociatedPowerManagementService,
@@ -159,6 +156,7 @@ class Client(object):
         resp = requests.post(self.uri,
                              auth=HTTPDigestAuth(self.username, self.password),
                              data=payload)
+        resp.raise_for_status()
         return pp_xml(resp.content)
 
 

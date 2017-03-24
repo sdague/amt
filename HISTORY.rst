@@ -3,6 +3,11 @@
 History
 -------
 
+0.7.0 (2017-03-24)
+------------------
+* add support for -p flag to prompt for password and bypass hostdb
+* nice errors to the user when auth fails
+
 0.6.0 (2016-10-27)
 ------------------
 * add support for stand-by power state (thanks Chen Rotem Levy)

@@ -28,6 +28,7 @@ POWER_STATES = {
     'off': 8,
     'standby': 4,
     'reboot': 5,
+    'hibernate': 7,
 }
 
 # Valid boot devices

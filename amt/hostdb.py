@@ -37,7 +37,7 @@ class HostDB(object):
         self.config.set(name, 'passwd', passwd)
         # ensure the directory exists
         if not os.path.exists(self.confdir):
-            os.makedirs(self.confdir)
+            os.makedirs(self.confdir, 0o770)
 
         with open(self.confname, 'w') as f:
             self.config.write(f)

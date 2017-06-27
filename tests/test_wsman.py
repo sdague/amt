@@ -110,6 +110,10 @@ class TestFriendlyPowerState(testtools.TestCase):
         self.assertEqual(wsman.friendly_power_state('5'), 'reboot')
         self.assertEqual(wsman.friendly_power_state(5), 'reboot')
 
+    def test_hibernate(self):
+        self.assertEqual(wsman.friendly_power_state('7'), 'hibernate')
+        self.assertEqual(wsman.friendly_power_state(7), 'hibernate')
+
     def test_unknown(self):
         self.assertEqual(wsman.friendly_power_state('42'), 'unknown')
         self.assertEqual(wsman.friendly_power_state(42), 'unknown')

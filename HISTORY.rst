@@ -1,7 +1,13 @@
 .. :changelog:
 
-History
--------
+=========
+ History
+=========
+
+0.8.0 (2017-06-27)
+------------------
+* add support for hybernate power state (thanks Chen Rotem Levy)
+* ensure hostdb is not world readable when created (thanks bodo-riediger)
 
 0.7.0 (2017-03-24)
 ------------------

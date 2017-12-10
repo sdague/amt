@@ -142,8 +142,8 @@ class Client(object):
             "PowerState")
         return value
 
-    def enable_vnc(self):
-        payload = amt.wsman.enable_remote_kvm(self.uri, self.password)
+    def enable_vnc(self, passwd):
+        payload = amt.wsman.enable_remote_kvm(self.uri, passwd)
         self.post(payload)
         payload = amt.wsman.kvm_redirect(self.uri)
         self.post(payload)

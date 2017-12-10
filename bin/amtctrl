@@ -3,6 +3,8 @@
 import argparse
 import os
 import sys
+import getpass
+import re
 
 import requests
 
@@ -61,6 +63,11 @@ def parse_args_rm():
                    help='')
     return parser.parse_args()
 
+def check_valid_vnc_password(passwd):
+    if re.search(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8}\b$', passwd):
+        return True
+    else:
+        return False
 
 def main():
     args = parse_args()
@@ -78,8 +85,7 @@ def main():
     if args.prompt:
         host = args.server
         if sys.stdin.isatty():
-            from getpass import getpass
-            passwd = getpass()
+            passwd = getpass.getpass()
         else:
             passwd = sys.stdin.readline().rstrip('\r\n')
     else:
@@ -104,8 +110,28 @@ def main():
         elif args.command == "status":
            print(amt.wsman.friendly_power_state(client.power_status()))
         elif args.command == "vnc":
-             client.enable_vnc()
-             print("VNC enabled on port 5900 with AMT password")
+             if check_valid_vnc_password(passwd):
+                 vncpasswd = passwd
+             else:
+                 print('Warning, current AMT password does not meet RFBPassword complexity requirements.\n')
+                 print('Password must be EXACTLY 8 characters and have the following:')
+                 print('*) one upper case letter')
+                 print('*) one lower case letter')
+                 print('*) one digit')
+                 print('*) one special character excluding (") (,) (:)')
+                 
+                 while True:
+                     vncpasswd = getpass.getpass('VNC Password:')
+                     if check_valid_vnc_password(vncpasswd):
+                         break
+                     else:
+                         print('Invalid password')
+             client.enable_vnc(vncpasswd)
+             if vncpasswd == passwd:
+                 print("VNC enabled on port 5900 with AMT password")
+             else:
+                 print("VNC enabled on port 5900 with non-AMT VNC specific password")
+
         elif args.command == "vncstatus":
              print(client.vnc_status())
         else:

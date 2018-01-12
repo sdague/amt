@@ -55,11 +55,15 @@ class HostDB(object):
 
     def get_server(self, name):
         if self.config.has_section(name):
-            return {
+            data = {
                 'host': self.config.get(name, 'host'),
                 'passwd': self.config.get(name, 'passwd'),
-                'vncpasswd': self.config.get(name, 'vncpasswd', fallback=None)
             }
+            if self.config.has_option(name, 'vncpasswd'):
+                data['vncpasswd'] = self.config.get(name, 'vncpasswd')
+            else:
+                data['vncpasswd'] = None
+            return data
         else:
             print("No config found for server (%s), "
                   "perhaps you need to add one via ``amtctrl set``" % name)

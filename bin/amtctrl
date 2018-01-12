@@ -12,13 +12,12 @@ import amt.wsman
 
 RESERVE_WORDS = ['list', 'get', 'add', 'set', 'rm']
 
+
 def parse_args():
     parser = argparse.ArgumentParser(
         'amtctrl',
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=(
-"""
-
+        description=("""
 amtctrl lets you do hardware control on AMT enabled Intel machines. To
 make it easier to use interactively, it operates as 2 things, a host
 database to register hosts by ip or hostname, and then runs commands
@@ -45,8 +44,8 @@ command is one of:
   pxeboot - reboot the machine and pxeboot on the next reboot cycle
   status - dump cim power status
   vnc - enable vnc on the server
-"""
-    ))
+"""))
+
     parser.add_argument('server', metavar='name',
                         help='')
     parser.add_argument('-p', '--prompt-pass',
@@ -57,34 +56,37 @@ command is one of:
                         help='')
     return parser.parse_known_args()[0]
 
+
 def parse_args_set():
     parser = argparse.ArgumentParser('amtctrl')
     parser.add_argument('op', metavar='set',
-                   help='')
+                        help='')
     parser.add_argument('name', metavar='name',
-                   help='')
+                        help='')
     parser.add_argument('host', metavar='host',
-                   help='')
+                        help='')
     parser.add_argument('passwd', metavar='passwd',
-                   help='')
+                        help='')
     parser.add_argument("-V", '--vncpasswd', metavar='vncpasswd',
-                   help='')
+                        help='')
     return parser.parse_args()
+
 
 def parse_args_rm():
     parser = argparse.ArgumentParser('amtctrl')
     parser.add_argument('op', metavar='remove',
-                   help='')
+                        help='')
     parser.add_argument('name', metavar='name',
-                   help='')
+                        help='')
     return parser.parse_args()
+
 
 def parse_args_get():
     parser = argparse.ArgumentParser('amtctrl')
     parser.add_argument('op', metavar='get',
-                   help='')
+                        help='')
     parser.add_argument('name', metavar='name',
-                   help='')
+                        help='')
     return parser.parse_args()
 
 
@@ -143,18 +145,20 @@ def main():
             client.pxe_next_boot()
             client.power_cycle()
         elif args.command == "status":
-           print(amt.wsman.friendly_power_state(client.power_status()))
+            print(amt.wsman.friendly_power_state(client.power_status()))
         elif args.command == "vnc":
             if client.enable_vnc():
                 print("VNC enabled on port 5900 with AMT password")
         elif args.command == "vncstatus":
-             print(client.vnc_status())
+            print(client.vnc_status())
         else:
             print(("Unknown command %s"
-                   "try one of on, off, reboot, pxeboot, status, vnc, vncstatus")
+                   "try one of on, off, reboot, pxeboot, "
+                   "status, vnc, vncstatus")
                   % args.command)
     except requests.exceptions.HTTPError as e:
         print("Error: %s" % e)
+
 
 if __name__ == "__main__":
     sys.exit(main())

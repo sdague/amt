@@ -2,13 +2,23 @@
 
 language: python
 
-python:
-  - "2.7"
-  - "3.4"
-  - "3.5"
+matrix:
+  fast_finish: true
+  include:
+    - python: "2.7"
+      env: TOXENV=py27
+    - python: "3.5.3"
+      env: TOXENV=pep8
+    - python: "3.5.3"
+      env: TOXENV=py35
+    - python: "3.6"
+      env: TOXENV=py36
+
+cache:
+  directories:
+    - $HOME/.cache/pip
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install: pip install -r requirements.txt -r test-requirements.txt
 
-# command to run tests, e.g. python setup.py test
-script: py.test tests
+script: travis_wait 30 tox --develop

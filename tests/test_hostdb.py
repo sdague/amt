@@ -17,7 +17,6 @@ test_hostdb
 Tests for `amt` module's wsman.py file
 """
 
-import appdirs
 import fixtures
 import mock
 import testtools
@@ -45,7 +44,7 @@ class TestHostDB(testtools.TestCase):
         self.db.add_server("os2", "10.42.0.51", "foo")
         self.db.list_servers()
         self.assertEqual(self.stdout,
-                        "Available servers (2):\n    os1\n    os2")
+                         "Available servers (2):\n    os1\n    os2")
 
     def test_rm_servers(self):
         self.db.add_server("os1", "10.42.0.50", "foo")
@@ -54,7 +53,7 @@ class TestHostDB(testtools.TestCase):
         self.db.rm_server("os2")
         self.db.list_servers()
         self.assertEqual(self.stdout,
-                        "Available servers (2):\n    os1\n    os3")
+                         "Available servers (2):\n    os1\n    os3")
 
     def test_get_server(self):
         self.db.add_server("os1", "10.42.0.50", "foo")

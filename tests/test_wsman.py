@@ -119,7 +119,8 @@ class TestFriendlyPowerState(testtools.TestCase):
         self.assertEqual(wsman.friendly_power_state(42), 'unknown')
 
     def test_non_integer(self):
-        self.assertRaises(ValueError, wsman.friendly_power_state, 'not-a-number')
+        self.assertRaises(ValueError, wsman.friendly_power_state,
+                          'not-a-number')
 
 
 class TestAmt(testtools.TestCase):

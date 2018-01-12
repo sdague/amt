@@ -57,7 +57,8 @@ class HostDB(object):
         if self.config.has_section(name):
             return {
                 'host': self.config.get(name, 'host'),
-                'passwd': self.config.get(name, 'passwd')
+                'passwd': self.config.get(name, 'passwd'),
+                'vncpasswd': self.config.get(name, 'vncpasswd')
             }
         else:
             print("No config found for server (%s), "

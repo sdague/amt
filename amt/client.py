@@ -69,7 +69,9 @@ class Client(object):
 
     Manage interactions with AMT host.
     """
-    def __init__(self, address, password, username='admin', protocol='http'):
+    def __init__(self, address, password,
+                 username='admin', protocol='http',
+                 vncpasswd=None):
         port = AMT_PROTOCOL_PORT_MAP[protocol]
         path = '/wsman'
         self.uri = "%(protocol)s://%(address)s:%(port)s%(path)s" % {
@@ -79,6 +81,7 @@ class Client(object):
             'path': path}
         self.username = username
         self.password = password
+        self.vncpassword = vncpasswd
 
     def post(self, payload, ns=None):
         resp = requests.post(self.uri,
@@ -143,10 +146,14 @@ class Client(object):
         return value
 
     def enable_vnc(self):
-        payload = amt.wsman.enable_remote_kvm(self.uri, self.password)
+        if self.vncpassword is None:
+            print("VNC Password was not set")
+            return False
+        payload = amt.wsman.enable_remote_kvm(self.uri, self.vncpassword)
         self.post(payload)
         payload = amt.wsman.kvm_redirect(self.uri)
         self.post(payload)
+        return True
 
     def vnc_status(self):
         payload = amt.wsman.get_request(

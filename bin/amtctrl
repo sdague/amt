@@ -129,8 +129,9 @@ def main():
             return 1
         host = server['host']
         passwd = server['passwd']
+        vncpasswd = server['vncpasswd']
 
-    client = amt.client.Client(host, passwd)
+    client = amt.client.Client(host, passwd, vncpasswd)
     try:
         if args.command == "on":
             client.power_on()
@@ -144,8 +145,8 @@ def main():
         elif args.command == "status":
            print(amt.wsman.friendly_power_state(client.power_status()))
         elif args.command == "vnc":
-             client.enable_vnc()
-             print("VNC enabled on port 5900 with AMT password")
+            if client.enable_vnc():
+                print("VNC enabled on port 5900 with AMT password")
         elif args.command == "vncstatus":
              print(client.vnc_status())
         else:

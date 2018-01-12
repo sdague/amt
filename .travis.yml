@@ -19,6 +19,6 @@ cache:
     - $HOME/.cache/pip
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -r requirements.txt -r test-requirements.txt
+install: pip install -U tox
 
 script: travis_wait 30 tox --develop

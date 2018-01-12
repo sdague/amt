@@ -56,4 +56,4 @@ class HostDB(object):
             }
         else:
             print("No config found for server (%s), "
-                  "perhaps you need to add one via ``amtctrl add``")
+                  "perhaps you need to add one via ``amtctrl add``" % name)

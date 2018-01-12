@@ -40,24 +40,24 @@ class TestHostDB(testtools.TestCase):
         return self.out._details['stdout'].as_text()
 
     def test_list_servers(self):
-        self.db.add_server("os1", "10.42.0.50", "foo")
-        self.db.add_server("os2", "10.42.0.51", "foo")
+        self.db.set_server("os1", "10.42.0.50", "foo")
+        self.db.set_server("os2", "10.42.0.51", "foo")
         self.db.list_servers()
         self.assertEqual(self.stdout,
                          "Available servers (2):\n    os1\n    os2")
 
     def test_rm_servers(self):
-        self.db.add_server("os1", "10.42.0.50", "foo")
-        self.db.add_server("os2", "10.42.0.51", "foo")
-        self.db.add_server("os3", "10.42.0.52", "foo")
+        self.db.set_server("os1", "10.42.0.50", "foo")
+        self.db.set_server("os2", "10.42.0.51", "foo")
+        self.db.set_server("os3", "10.42.0.52", "foo")
         self.db.rm_server("os2")
         self.db.list_servers()
         self.assertEqual(self.stdout,
                          "Available servers (2):\n    os1\n    os3")
 
     def test_get_server(self):
-        self.db.add_server("os1", "10.42.0.50", "foo")
-        self.db.add_server("os2", "10.42.0.51", "foo")
+        self.db.set_server("os1", "10.42.0.50", "foo")
+        self.db.set_server("os2", "10.42.0.51", "foo")
         server = self.db.get_server("os1")
         self.assertEqual(server,
-                         dict(host="10.42.0.50", passwd="foo"))
+                         dict(host="10.42.0.50", passwd="foo", vncpasswd=None))

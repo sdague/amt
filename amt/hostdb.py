@@ -31,7 +31,7 @@ class HostDB(object):
         for item in self.config.sections():
             print("    %s" % item)
 
-    def set_server(self, name, host, passwd, vncpasswd):
+    def set_server(self, name, host, passwd, vncpasswd=None):
         # This is add/update
         if not self.config.has_section(name):
             self.config.add_section(name)
@@ -58,7 +58,7 @@ class HostDB(object):
             return {
                 'host': self.config.get(name, 'host'),
                 'passwd': self.config.get(name, 'passwd'),
-                'vncpasswd': self.config.get(name, 'vncpasswd')
+                'vncpasswd': self.config.get(name, 'vncpasswd', fallback=None)
             }
         else:
             print("No config found for server (%s), "

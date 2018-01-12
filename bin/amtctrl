@@ -10,27 +10,43 @@ import amt.client
 import amt.hostdb
 import amt.wsman
 
+RESERVE_WORDS = ['list', 'get', 'add', 'set', 'rm']
+
 def parse_args():
-    parser = argparse.ArgumentParser('amtctrl')
-#                                      description=(
-# """
-# amtctrl acts of servers that you've registered with it to issue amt commands.
+    parser = argparse.ArgumentParser(
+        'amtctrl',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=(
+"""
 
-# amtctrl list - list all servers registered
-# amtctrl add <name> <ip> <passwd> - register a server
-# amtctrl rm <name> - unregister a server
+amtctrl lets you do hardware control on AMT enabled Intel machines. To
+make it easier to use interactively, it operates as 2 things, a host
+database to register hosts by ip or hostname, and then runs commands
+by those aliases.
 
-# amtctrl <name> <command> - run an amt command on the server
+Host DB Commands
+----------------
 
-# command is one of:
+amtctrl list - list all servers registered
+amtctrl set [-V vncpasswd] <name> <ip> <passwd> - register a server
+amtctrl rm <name> - unregister a server
+amtctrl get <name> - return info for the server
 
-#   on - power on
-#   off - power off
-#   reboot - reboot
-#   pxeboot - reboot the machine and pxeboot on the next reboot cycle
-#   status - dump cim power status
-# """
-#     ))
+Control Commands
+----------------
+
+amtctrl <name> <command> - run an amt command on the server
+
+command is one of:
+
+  on - power on
+  off - power off
+  reboot - reboot
+  pxeboot - reboot the machine and pxeboot on the next reboot cycle
+  status - dump cim power status
+  vnc - enable vnc on the server
+"""
+    ))
     parser.add_argument('server', metavar='name',
                         help='')
     parser.add_argument('-p', '--prompt-pass',
@@ -41,15 +57,17 @@ def parse_args():
                         help='')
     return parser.parse_known_args()[0]
 
-def parse_args_add():
+def parse_args_set():
     parser = argparse.ArgumentParser('amtctrl')
-    parser.add_argument('op', metavar='add',
+    parser.add_argument('op', metavar='set',
                    help='')
     parser.add_argument('name', metavar='name',
                    help='')
     parser.add_argument('host', metavar='host',
                    help='')
     parser.add_argument('passwd', metavar='passwd',
+                   help='')
+    parser.add_argument("-V", '--vncpasswd', metavar='vncpasswd',
                    help='')
     return parser.parse_args()
 
@@ -61,19 +79,41 @@ def parse_args_rm():
                    help='')
     return parser.parse_args()
 
+def parse_args_get():
+    parser = argparse.ArgumentParser('amtctrl')
+    parser.add_argument('op', metavar='get',
+                   help='')
+    parser.add_argument('name', metavar='name',
+                   help='')
+    return parser.parse_args()
 
-def main():
-    args = parse_args()
-    # if the "server" name is reserve word, run that command
-    db = amt.hostdb.HostDB()
+
+def do_db_actions(args, db):
     if args.server == 'list':
         return db.list_servers()
-    elif args.server == 'add':
-        add_args = parse_args_add()
-        return db.add_server(add_args.name, add_args.host, add_args.passwd)
+    elif args.server == 'add' or args.server == 'set':
+        if args.server == 'add':
+            print("WARNING: ``add`` command is deprecated, ``set`` "
+                  "is prefered")
+        set_args = parse_args_set()
+        return db.set_server(set_args.name, set_args.host, set_args.passwd,
+                             set_args.vncpasswd)
     elif args.server == 'rm':
         rm_args = parse_args_rm()
         return db.rm_server(rm_args.name)
+    elif args.server == 'get':
+        get_args = parse_args_get()
+        server = db.get_server(get_args.name)
+        print("%s => %s" % (get_args.name, server['host']))
+
+
+def main():
+    args = parse_args()
+    db = amt.hostdb.HostDB()
+
+    # if the "server" name is reserve word, run that command
+    if args.server in RESERVE_WORDS:
+        return do_db_actions(args, db)
 
     if args.prompt:
         host = args.server

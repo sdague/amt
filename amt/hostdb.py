@@ -31,10 +31,15 @@ class HostDB(object):
         for item in self.config.sections():
             print("    %s" % item)
 
-    def add_server(self, name, host, passwd):
-        self.config.add_section(name)
+    def set_server(self, name, host, passwd, vncpasswd):
+        # This is add/update
+        if not self.config.has_section(name):
+            self.config.add_section(name)
+
         self.config.set(name, 'host', host)
         self.config.set(name, 'passwd', passwd)
+        if vncpasswd is not None:
+            self.config.set(name, 'vncpasswd', vncpasswd)
         # ensure the directory exists
         if not os.path.exists(self.confdir):
             os.makedirs(self.confdir, 0o770)
@@ -56,4 +61,4 @@ class HostDB(object):
             }
         else:
             print("No config found for server (%s), "
-                  "perhaps you need to add one via ``amtctrl add``" % name)
+                  "perhaps you need to add one via ``amtctrl set``" % name)

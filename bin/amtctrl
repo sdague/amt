@@ -133,7 +133,7 @@ def main():
         passwd = server['passwd']
         vncpasswd = server['vncpasswd']
 
-    client = amt.client.Client(host, passwd, vncpasswd)
+    client = amt.client.Client(host, passwd, vncpasswd=vncpasswd)
     try:
         if args.command == "on":
             client.power_on()

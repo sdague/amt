@@ -50,6 +50,10 @@ include vPro.
 This code gets tested with ``5i5MYHE`` NUCs as well as an older NUC
 that I have laying around.
 
+Some motherboards includes vPro. Listed below can run this code:
+
+* `GIGABYTE MW50-SV0 <https://www.gigabyte.com/Server-Motherboard/MW50-SV0-rev-10#ov>`_
+
 
 Configuring AMT
 ---------------

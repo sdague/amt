@@ -84,19 +84,26 @@ class Client(object):
         self.vncpassword = vncpasswd
 
     def post(self, payload, ns=None):
-        resp = requests.post(self.uri,
-                             headers={'content-type':
-                                      'application/soap+xml;charset=UTF-8'},
-                             auth=HTTPDigestAuth(self.username, self.password),
-                             data=payload)
-        resp.raise_for_status()
-        if ns:
-            rv = _return_value(resp.content, ns)
-            if rv == 0:
-                return 0
-            print(pp_xml(resp.content))
-        else:
-            return 0
+        try:
+            resp = requests.post(self.uri,
+	                             headers={'content-type':
+	                                      'application/soap+xml;charset=UTF-8'},
+	                             auth=HTTPDigestAuth(self.username, self.password),
+	                             data=payload,
+	                             timeout=5.0)
+            resp.raise_for_status()
+        except requests.exceptions.Timeout:
+            print "Request timed out."
+        except requests.exceptions.RequestException as e:
+            print e
+        else:             
+	        if ns:
+	            rv = _return_value(resp.content, ns)
+	            if rv == 0:
+	                return 0
+	            print(pp_xml(resp.content))
+	        else:
+	            return 0
 
     def power_on(self):
         """Power on the box."""

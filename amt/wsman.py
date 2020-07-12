@@ -29,6 +29,7 @@ POWER_STATES = {
     'standby': 4,
     'reboot': 5,
     'reset': 10,
+    'sleep': 3,
     'hibernate': 7,
 }
 

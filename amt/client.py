@@ -118,6 +118,16 @@ class Client(object):
         payload = amt.wsman.power_state_request(self.uri, "reset")
         return self.post(payload, CIM_PowerManagementService)
 
+    def power_sleep(self):
+        """Put the box to sleep."""
+        payload = amt.wsman.power_state_request(self.uri, "sleep")
+        return self.post(payload, CIM_PowerManagementService)
+
+    def power_hibernate(self):
+        """Hibernate the box."""
+        payload = amt.wsman.power_state_request(self.uri, "hibernate")
+        return self.post(payload, CIM_PowerManagementService)
+
     def pxe_next_boot(self):
         """Sets the machine to PXE boot on its next reboot
 

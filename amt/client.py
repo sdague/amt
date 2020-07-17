@@ -112,9 +112,9 @@ class Client(object):
 
     def post(self, payload, ns=None):
         resp = self.session.post(self.uri,
-                             headers={'content-type':
-                                      'application/soap+xml;charset=UTF-8'},
-                             data=payload)
+                                 headers={'content-type':
+                                          'application/soap+xml;charset=UTF-8'},
+                                 data=payload)
         resp.raise_for_status()
         self.version = resp.headers.get('Server')
         if ns:
@@ -266,9 +266,9 @@ class Client(object):
         creds = amt.wsman.prepare_tls_credentials(instance)
 
         if exists:
-            resp = self.post(amt.wsman.put_item(self.path, AMT_TLSCredentialContext, None, None, creds))
+            self.post(amt.wsman.put_item(self.path, AMT_TLSCredentialContext, None, None, creds))
         else:
-            resp = self.post(amt.wsman.create_item(self.path, AMT_TLSCredentialContext, creds))
+            self.post(amt.wsman.create_item(self.path, AMT_TLSCredentialContext, creds))
 
         return True
 

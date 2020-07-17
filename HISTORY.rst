@@ -4,6 +4,11 @@
  History
 =========
 
+0.9.0 (2020-07-17)
+------------------
+* move host database management to a separate command
+* add support for configuring TLS
+
 0.8.0 (2017-06-27)
 ------------------
 * add support for hybernate power state (thanks Chen Rotem Levy)

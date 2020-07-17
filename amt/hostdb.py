@@ -31,7 +31,8 @@ class HostDB(object):
         for item in self.config.sections():
             print("    %s" % item)
 
-    def set_server(self, name, host, passwd, vncpasswd=None, scheme='http'):
+    def set_server(self, name, host, passwd, vncpasswd=None, scheme='http',
+                   ca=None, key=None, cert=None):
         # This is add/update
         if not self.config.has_section(name):
             self.config.add_section(name)
@@ -41,6 +42,20 @@ class HostDB(object):
         self.config.set(name, 'scheme', scheme)
         if vncpasswd is not None:
             self.config.set(name, 'vncpasswd', vncpasswd)
+
+        if ca is not None:
+            self.config.set(name, 'ca', ca)
+        else:
+            self.config.remove_option(name, 'ca')
+        if key is not None:
+            self.config.set(name, 'key', key)
+        else:
+            self.config.remove_option(name, 'key')
+        if cert is not None:
+            self.config.set(name, 'cert', cert)
+        else:
+            self.config.remove_option(name, 'cert')
+
         # ensure the directory exists
         if not os.path.exists(self.confdir):
             os.makedirs(self.confdir, 0o770)
@@ -68,6 +83,9 @@ class HostDB(object):
                 data['scheme'] = self.config.get(name, 'scheme')
             else:
                 data['scheme'] = 'http'
+            data['ca'] = self.config.get(name, 'ca', fallback=None)
+            data['key'] = self.config.get(name, 'key', fallback=None)
+            data['cert'] = self.config.get(name, 'cert', fallback=None)
             return data
         else:
             print("No config found for server (%s), "

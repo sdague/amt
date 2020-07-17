@@ -2,6 +2,7 @@
 
 import argparse
 import os
+from pprint import pprint
 import sys
 
 import requests
@@ -10,115 +11,86 @@ import amt.client
 import amt.hostdb
 import amt.wsman
 
-RESERVE_WORDS = ['list', 'get', 'add', 'set', 'rm']
 
+def main():
+    parser = argparse.ArgumentParser(description="amtctrl lets you do hardware control on AMT enabled Intel machines")
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        'amtctrl',
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        description=("""
-amtctrl lets you do hardware control on AMT enabled Intel machines. To
-make it easier to use interactively, it operates as 2 things, a host
-database to register hosts by ip or hostname, and then runs commands
-by those aliases.
-
-Host DB Commands
-----------------
-
-amtctrl list - list all servers registered
-amtctrl set [-V vncpasswd] <name> <ip> <passwd> - register a server
-amtctrl rm <name> - unregister a server
-amtctrl get <name> - return info for the server
-
-Control Commands
-----------------
-
-amtctrl <name> <command> - run an amt command on the server
-
-command is one of:
-
-  on - power on
-  off - power off
-  reboot - reboot
-  reset - reset
-  pxeboot - reboot the machine and pxeboot on the next reboot cycle
-  status - dump cim power status
-  vnc - enable vnc on the server
-"""))
-
-    parser.add_argument('server', metavar='name',
-                        help='')
     parser.add_argument('-p', '--prompt-pass',
                         dest='prompt', action='store_true',
                         default=False,
                         help='Prompt for password, bypass database')
-    parser.add_argument('command', metavar='command', nargs='?',
-                        help='')
-    return parser.parse_known_args()[0]
+    parser.add_argument('server', metavar='name', help='server name')
+    subparsers = parser.add_subparsers(dest='command')
 
+    parser_power = subparsers.add_parser('power', help='get/set power state')
+    parser_power.add_argument('state', choices=['on', 'off', 'reboot', 'reset', 'sleep', 'status'])
 
-def parse_args_set():
-    parser = argparse.ArgumentParser('amtctrl')
-    parser.add_argument('op', metavar='set',
-                        help='')
-    parser.add_argument('name', metavar='name',
-                        help='')
-    parser.add_argument('host', metavar='host',
-                        help='')
-    parser.add_argument('passwd', metavar='passwd',
-                        help='')
-    parser.add_argument("-S", '--scheme', metavar='scheme', default='http',
-                        help='')
-    parser.add_argument("-V", '--vncpasswd', metavar='vncpasswd',
-                        help='')
-    return parser.parse_args()
+    parser_pki = subparsers.add_parser('pki', help='configure PKI')
 
+    pki_subparsers = parser_pki.add_subparsers(dest='subcommand', required=True)
 
-def parse_args_rm():
-    parser = argparse.ArgumentParser('amtctrl')
-    parser.add_argument('op', metavar='remove',
-                        help='')
-    parser.add_argument('name', metavar='name',
-                        help='')
-    return parser.parse_args()
+    parser_pki_list = pki_subparsers.add_parser('list', help='list certificates/keys')
+    pki_list_subparsers = parser_pki_list.add_subparsers(dest='type', required=True)
+    parser_pki_list_certs = pki_list_subparsers.add_parser('certs', help='certificates')
+    parser_pki_list_keys = pki_list_subparsers.add_parser('keys', help='private keys')
 
+    parser_pki_add = pki_subparsers.add_parser('add', help='add certificate/key')
+    pki_add_subparsers = parser_pki_add.add_subparsers(dest='type', required=True)
+    parser_pki_add_cert = pki_add_subparsers.add_parser('cert', help='certificate')
+    parser_pki_add_cert.add_argument('-t', '--trusted', action='store_true', help='trusted root certificate')
+    parser_pki_add_cert.add_argument('filename', metavar='filename', help='certificate file (PEM format)')
+    parser_pki_add_key = pki_add_subparsers.add_parser('key', help='private key')
+    parser_pki_add_key.add_argument('filename', metavar='filename', help='RSA private key file (PEM format)')
 
-def parse_args_get():
-    parser = argparse.ArgumentParser('amtctrl')
-    parser.add_argument('op', metavar='get',
-                        help='')
-    parser.add_argument('name', metavar='name',
-                        help='')
-    return parser.parse_args()
+    parser_pki_rm = pki_subparsers.add_parser('rm', help='remove certificate/key')
+    pki_rm_subparsers = parser_pki_rm.add_subparsers(dest='type', required=True)
+    parser_pki_rm_cert = pki_rm_subparsers.add_parser('cert', help='certificate')
+    parser_pki_rm_cert.add_argument('id', metavar='InstanceID', help='certificate InstanceID')
+    parser_pki_rm_key = pki_rm_subparsers.add_parser('key', help='private key')
+    parser_pki_rm_key.add_argument('id', metavar='InstanceID', help='private key InstanceID')
 
+    parser_pki_generate = pki_subparsers.add_parser('generate', help='generate private key')
+    parser_pki_generate.add_argument('bits', type=int, choices=[2048], help='RSA key size in bits')
 
-def do_db_actions(args, db):
-    if args.server == 'list':
-        return db.list_servers()
-    elif args.server == 'add' or args.server == 'set':
-        if args.server == 'add':
-            print("WARNING: ``add`` command is deprecated, ``set`` "
-                  "is prefered")
-        set_args = parse_args_set()
-        return db.set_server(set_args.name, set_args.host, set_args.passwd,
-                             set_args.vncpasswd, scheme=set_args.scheme)
-    elif args.server == 'rm':
-        rm_args = parse_args_rm()
-        return db.rm_server(rm_args.name)
-    elif args.server == 'get':
-        get_args = parse_args_get()
-        server = db.get_server(get_args.name)
-        print("%s => %s" % (get_args.name, server['host']))
+    parser_pki_request = pki_subparsers.add_parser('request', help='sign certificate signing request')
+    parser_pki_request.add_argument('filename', metavar='filename', help='unsigned certificate signing request file (PEM format)')
+    parser_pki_request.add_argument('id', metavar='InstanceID', help='private key InstanceID')
 
+    parser_time = subparsers.add_parser('time', help='get/set AMT time')
 
-def main():
-    args = parse_args()
+    parser_pki_tls = pki_subparsers.add_parser('tls', help='configure TLS use of PKI')
+    parser_pki_tls.add_argument('id', metavar='InstanceID', help='certificate InstanceID')
+
+    parser_pxeboot = subparsers.add_parser('pxeboot', help='reboot the machine and pxeboot on the next reboot cycle')
+
+    parser_tls = subparsers.add_parser('tls', help='configure TLS')
+
+    tls_subparsers = parser_tls.add_subparsers(dest='subcommand', required=True)
+
+    parser_tls_enable = tls_subparsers.add_parser('enable', help='enable TLS')
+    parser_tls_enable.add_argument('-l', '--local', action='store_true', help='Configure local connections only')
+    parser_tls_enable.add_argument('-r', '--remote', action='store_true', help='Configure remote connections only')
+    parser_tls_enable_group = parser_tls_enable.add_mutually_exclusive_group(required=False)
+    parser_tls_enable_group.add_argument('-s', '--require-secure', action='store_true', help='Require secure connections')
+    parser_tls_enable_group.add_argument('-p', '--allow-plaintext', action='store_true', help='Allow plaintext connections')
+    parser_tls_enable.add_argument('-m', '--mutual', action='store_true', help='Require mutual authentication')
+    parser_tls_enable.add_argument('-c', '--cn', default=[], action='append', help='Allowed common names')
+
+    parser_tls_status = tls_subparsers.add_parser('status', help='get TLS settings')
+
+    parser_tls_disable = tls_subparsers.add_parser('disable', help='disable TLS')
+    parser_tls_disable.add_argument('-l', '--local', action='store_true', help='Configure local connections only')
+    parser_tls_disable.add_argument('-r', '--remote', action='store_true', help='Configure remote connections only')
+
+    parser_uuid = subparsers.add_parser('uuid', help='get machine uuid')
+
+    parser_version = subparsers.add_parser('version', help='get AMT version')
+
+    parser_vnc = subparsers.add_parser('vnc', help='get/set vnc state')
+    parser_vnc.add_argument('state', choices=['start', 'status'])
+
+    args = parser.parse_args()
     db = amt.hostdb.HostDB()
-
-    # if the "server" name is reserve word, run that command
-    if args.server in RESERVE_WORDS:
-        return do_db_actions(args, db)
 
     if args.prompt:
         host = args.server
@@ -130,42 +102,148 @@ def main():
     else:
         server = db.get_server(args.server)
         if not server:
-            print("Server %s not found in hostdb" % args.server)
+            print('Server %s not found in hostdb' % args.server)
             return 1
         host = server['host']
         passwd = server['passwd']
         scheme = server['scheme']
         vncpasswd = server['vncpasswd']
+        ca = server['ca']
+        key = server['key']
+        cert = server['cert']
+        client = amt.client.Client(host, passwd, vncpasswd=vncpasswd,
+                                   protocol=scheme, ca=ca,
+                                   key=key, cert=cert)
 
-    client = amt.client.Client(host, passwd, vncpasswd=vncpasswd,
-                               protocol=scheme)
     try:
-        if args.command == "on":
-            client.power_on()
-        elif args.command == "off":
-            client.power_off()
-        elif args.command == "reboot":
-            client.power_cycle()
-        elif args.command == "reset":
-            client.power_cycle_hard()
-        elif args.command == "pxeboot":
+        if args.command == 'power':
+            if args.state == 'on':
+                client.power_on()
+            elif args.state == 'off':
+                client.power_off()
+            elif args.state == 'reboot':
+                client.power_cycle()
+            elif args.state == 'reset':
+                client.power_cycle_hard()
+            elif args.state == 'sleep':
+                client.power_sleep()
+            elif args.state == 'hibernate':
+                client.power_hibernate()
+            else:
+                print(amt.wsman.friendly_power_state(client.power_status()))
+        elif args.command == 'pki':
+            if args.subcommand == 'list':
+                if args.type == 'certs':
+                    for cert in client.get_pki_certs():
+                        if "X509Certificate" in cert:
+                            content = cert["X509Certificate"]
+                            del cert["X509Certificate"]
+                        pprint(cert, width=100)
+                        print("-----BEGIN CERTIFICATE-----")
+                        print(content)
+                        print("-----END CERTIFICATE-----")
+                        print()
+                elif args.type == 'keys':
+                    for key in client.get_pki_keys():
+                        if "DERKey" in key:
+                            content = key["DERKey"]
+                            del key["DERKey"]
+                        pprint(key)
+                        print("-----BEGIN RSA PUBLIC KEY-----")
+                        print(content)
+                        print("-----END RSA PUBLIC KEY-----")
+                        print()
+            elif args.subcommand == 'add':
+                if args.type == 'cert':
+                    for cert in client.add_pki_cert(args.filename, args.trusted):
+                        pprint(cert, width=100)
+                elif args.type == 'key':
+                    for key in client.add_pki_key(args.filename):
+                        pprint(key, width=100)
+            elif args.subcommand == 'rm':
+                if args.type == 'cert':
+                    print(client.remove_pki_cert(args.id))
+                elif args.type == 'key':
+                    print(client.remove_pki_key(args.id))
+            elif args.subcommand == 'generate':
+                print(client.generate_pki_key(args.bits))
+            elif args.subcommand == 'request':
+                # This needs a "null signed" CSR containing the public key only.
+                #
+                # Convert the AMT raw RSA public key into a generic public key:
+                #   openssl rsa -RSAPublicKey_in -in amt_rsa_public_key.pem -pubout -out amt_public_key.pem
+                #
+                # Create a CSR for common name "example.com", signed with a temporary new private key:
+                #   openssl genrsa | openssl x509 -x509toreq -new -subj /CN=example.com -signkey /dev/stdin -force_pubkey amt_public_key.pem -out amt_csr.pem
+                #
+                # (OpenSSL 3.0.0-alpha6-dev)
+                for (rv, request) in client.sign_pki_csr(args.filename, args.id):
+                    print(rv)
+                    if request is not None:
+                        print("-----BEGIN CERTIFICATE REQUEST-----")
+                        print(request)
+                        print("-----END CERTIFICATE REQUEST-----")
+                    print()
+            elif args.subcommand == 'tls':
+                print(client.configure_tls_pki(args.id))
+                print(client.commit_setup_changes())
+        elif args.command == 'pxeboot':
             client.pxe_next_boot()
             client.power_cycle()
-        elif args.command == "status":
-            print(amt.wsman.friendly_power_state(client.power_status()))
-        elif args.command == "vnc":
-            if client.enable_vnc():
-                print("VNC enabled on port 5900 with AMT password")
-        elif args.command == "vncstatus":
-            print(client.vnc_status())
+        elif args.command == 'time':
+            print(client.set_time())
+        elif args.command == 'tls':
+            if args.subcommand == 'enable':
+                changed = False
+
+                if args.remote:
+                    if not (args.allow_plaintext or args.require_secure):
+                        raise Exception("Remote TLS configuration must be set to allow plaintext connections or require secure connections")
+
+                    config = client.enable_remote_tls(plaintext=args.allow_plaintext, mutual=args.mutual, cn=args.cn)
+                    changed = True
+                    pprint(("config", "remote", config))
+                if args.local:
+                    config = client.enable_local_tls()
+                    changed = True
+                    pprint(("config", "local", config))
+
+                if changed:
+                    print(client.commit_setup_changes())
+            elif args.subcommand == 'status':
+                for (name, cred) in client.get_tls_credentials().items():
+                    pprint(("credentials", name, cred), width=200)
+                for (type, setting) in client.get_tls_status().items():
+                    pprint(("config", type, setting))
+            elif args.subcommand == 'disable':
+                changed = False
+
+                if args.remote:
+                    config = client.disable_remote_tls()
+                    changed = True
+                    pprint(("config", "remote", config))
+                if args.local:
+                    config = client.disable_local_tls()
+                    changed = True
+                    pprint(("config", "local", config))
+
+                if changed:
+                    print(client.commit_setup_changes())
+        elif args.command == 'uuid':
+            print(client.get_uuid())
+        elif args.command == 'version':
+            print(client.get_version())
+        elif args.command == 'vnc':
+            if args.state == 'start':
+                if client.enable_vnc():
+                    print('VNC enabled on port 5900 with AMT password')
+            else:
+                print(client.vnc_status())
         else:
-            print(("Unknown command %s"
-                   "try one of on, off, reboot, pxeboot, "
-                   "status, vnc, vncstatus")
-                  % args.command)
+            parser.error("No command specified")
     except requests.exceptions.HTTPError as e:
-        print("Error: %s" % e)
+        print('Error: %s' % e)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     sys.exit(main())

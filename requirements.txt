@@ -1,3 +1,4 @@
 appdirs
+pem
 requests
 six

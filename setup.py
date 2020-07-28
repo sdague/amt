@@ -16,6 +16,7 @@ with open('HISTORY.rst') as history_file:
 
 requirements = [
     'appdirs',
+    'pem',
     'requests',
     'six',
 ]
@@ -27,7 +28,7 @@ test_requirements = [
 
 setup(
     name='amt',
-    version='0.8.0',
+    version='0.9.0',
     description="Tools for interacting with Intel's AMT",
     long_description=readme + '\n\n' + history,
     author="Sean Dague",
@@ -38,7 +39,7 @@ setup(
     ],
     package_dir={'amt':
                  'amt'},
-    scripts=['bin/amtctrl'],
+    scripts=['bin/amtctrl', 'bin/amthostdb'],
     include_package_data=True,
     install_requires=requirements,
     license="Apache",

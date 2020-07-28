@@ -9,6 +9,7 @@ Tests for `amt` module's wsman.py file
 import mock
 import testtools
 
+from xml.etree import ElementTree
 from amt import wsman
 
 
@@ -19,8 +20,8 @@ def fake_uuid4():
 class BaseTestCase(testtools.TestCase):
 
     def assertXmlEqual(self, one, two):
-        one = one.strip()
-        two = two.strip()
+        one = ElementTree.tostring(ElementTree.fromstring(one))
+        two = ElementTree.tostring(ElementTree.fromstring(two))
         array1 = [x.strip() for x in str(one).split("\n")]
         array2 = [x.strip() for x in str(two).split("\n")]
         self.maxDiff = None
@@ -49,7 +50,7 @@ class TestXMLGen(BaseTestCase):
 <s:Body/>
 </s:Envelope>"""  # noqa
 
-        self.assertXmlEqual(wsman.get_request(uri, res), shouldbe)
+        self.assertXmlEqual(shouldbe, wsman.get_request(uri, res))
 
     @mock.patch('uuid.uuid4', fake_uuid4)
     def test_change_boot_to_pxe_request(self):
@@ -66,7 +67,7 @@ class TestXMLGen(BaseTestCase):
     <wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address>
 </wsa:ReplyTo>
 <wsman:SelectorSet>
-   <wsman:Selector Name="InstanceID">Intel(r) AMT: Boot Configuration 0</wsman:Selector>
+   <wsman:Selector Name="InstanceID">Intel(r) AMT: Force PXE Boot</wsman:Selector>
 </wsman:SelectorSet>
 </s:Header>
 <s:Body>
@@ -76,14 +77,14 @@ class TestXMLGen(BaseTestCase):
         <wsa:ReferenceParameters>
             <wsman:ResourceURI>http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootSourceSetting</wsman:ResourceURI>
             <wsman:SelectorSet>
-                <wsman:Selector wsman:Name="InstanceID">Intel(r) AMT: Force PXE Boot</wsman:Selector>
+                <wsman:Selector wsman:Name="InstanceID"></wsman:Selector>
             </wsman:SelectorSet>
          </wsa:ReferenceParameters>
      </n1:Source>
    </n1:ChangeBootOrder_INPUT>
 </s:Body></s:Envelope>"""  # noqa
 
-        self.assertXmlEqual(wsman.change_boot_to_pxe_request(uri), shouldbe)
+        self.assertXmlEqual(shouldbe, wsman.change_boot_to_pxe_request(uri))
 
     def test_change_boot_order_request_invalid_boot_device(self):
         uri = 'http://10.42.0.50:16992/wsman'

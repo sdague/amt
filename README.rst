@@ -69,24 +69,24 @@ One you do that, reboot and you are on your way.
 amtctrl
 -------
 
-The ``amt`` library installs a binary ``amtctrl`` for working with AMT
-enabled machines.
+The ``amt`` library installs binaries ``amtctrl``  and ``amthostdb`` for working
+with AMT enabled machines.
 
 machine enrollment
 ~~~~~~~~~~~~~~~~~~
 
-To simplify the control commands ``amtcrtl`` has a machine
+To simplify the control commands ``amthostdb`` has a machine
 registry. New machines are added via:
 
-    amtctrl add <name> <address> <amtpassword>
+   amthostdb add <name> <address> <amtpassword>
 
 You can see a list of all machines with:
 
-   amtctrl list
+   amthostdb list
 
 And remove an existing machine with:
 
-   amtctrl rm <name>
+   amthostdb rm <name>
 
 
 controlling machines
@@ -94,21 +94,101 @@ controlling machines
 
 Once machines are controlled you have a number of options exposed:
 
-   amtctrl <name> <command>
+   amtctrl <name> <command> [subcommand] [arguments]
 
 Command is one of:
 
-* on - power on the machine
+* power on - power on the machine
 
-* off - power off the machine
+* power off - power off the machine
 
-* reboot - power cycle the machine
+* power reboot - power cycle the machine
+
+* power status - return power status as an ugly CIM blob (TODO: make this better)
 
 * pxeboot - set the machine to pxeboot the next time it reboots, and
   reboot the machine. This is extremely useful if you have install
   automation on pxeboot.
 
-* status - return power status as an ugly CIM blob (TODO: make this better)
+* pki list certs - list PKI certificates
+
+* pki list keys - list PKI keys
+
+* pki add cert <filename> - add PKI certificate
+
+* pki add cert -t <filename> - add trusted PKI certificate
+
+* pki add key <filename> - add PKI RSA key
+
+* pki generate 2048 - generate 2048-bit PKI RSA key
+
+* pki request <filename> <id> - sign a PKI CSR
+
+* pki rm cert <id> - remove PKI certificate
+
+* pki rm key <id> - remove PKI key
+
+* pki tls <id> - configure TLS to use PKI key
+
+* time - set AMT system time
+
+* tls enable -r <-s|-p> [-m] [-c <common name>] - configure and enable remote TLS
+  (with/without mutual authentication, with/without allowing plaintext)
+
+* tls enable -l - configure and enable local TLS
+
+* tls status - get current TLS settings
+
+* tls disable -r - disable remote TLS
+
+* tls disable -l - disable local TLS
+
+* uuid - get AMT system UUID
+
+* version - get AMT version
+
+
+configuring TLS
+~~~~~~~~~~~~~~~
+
+The AMT supports 2048-bit keys for end-entity certificates and 4096-bit keys for
+certificate authorities/intermediate certificates. It supports SHA512 hashes.
+
+Various actions will not work without taking appropriate steps:
+
+  * TLS cannot be enabled until it is configured
+  * Certificates and keys in active use for TLS cannot be removed
+    (this includes all trusted certificates when mutual authentication is enabled)
+
+Client certificates must have extended key usage ``1.3.6.1.5.5.7.3.2``
+(TLS Web Client Authentication) and ``2.16.840.1.113741.1.2.1`` (Intel AMT Remote Console).
+
+Configuring the supported Common Names (``tls enable -c ... -c ... -c ...``) is optional.
+
+Repeatedly updating the certificate (e.g. using Let's Encrypt) may wear out the
+AMT flash. Use your own root CA.
+
+Configuring a Certificate Recovation List is not supported by this application.
+
+Be careful not to prevent yourself from accessing the AMT while configuring TLS,
+i.e. allow plaintext while making changes until TLS has been tested.
+
+1. Generate a key with ``amtctrl ... pki generate 2048``
+2. Get it with ``amtctrl ... pki list keys`` and save to ``amt_rsa_public_key.pem``
+3. Convert it to a generic public key with ``openssl rsa -RSAPublicKey_in -in amt_rsa_public_key.pem -pubout -out amt_public_key.pem``
+4. Create a CSR with ``openssl genrsa | openssl x509 -x509toreq -new -subj /CN=example.com -signkey /dev/stdin -force_pubkey amt_public_key.pem -out amt_csr.pem``
+   (requires OpenSSL 3.0.0+)
+5. Use ``amtctrl ... pki request amt_csr.pem <id>`` to get the AMT to sign the CSR
+6. Issue a certificate from your CA using the CSR
+7. Import the certificate with ``amtctrl ... pki add cert amt_cert.pem``
+8. Configure the new certificate to be used with TLS with ``amtctrl ... pki tls <id>``
+9. Enable TLS (allowing plaintext) with ``amtctrl ... tls enable -r -l -p``
+10. Test HTTPS access, using ``amthostdb`` to configure the root CA
+11. Enable TLS (disallowing plaintext) with ``amtctrl ... tls enable -r -l -s``
+12. Use ``amtctrl ... pki add cert -t root_ca.pem`` to import the root CA for client authentication
+13. Enable TLS (allowing plaintext) with ``amtctrl ... tls enable -r -l -p -m``
+14. Test HTTPS access, using ``amthostdb`` to configure the root CA, user key and user cert
+15. Enable TLS (disallowing plaintext) with ``amtctrl ... tls enable -r -l -s -m``
 
 Futures
 -------
@@ -117,10 +197,10 @@ Futures
   this)
 
 * Retry http requests when they fail. AMT processors randomly drop
-some connections, built in limited retry should be done.
+  some connections, built in limited retry should be done.
 
 * Fault handling. The current code is *very* optimistic. Hence, the
   0.x nature.
 
-* Remove console control. There are AMT commands to expose a VNC
+* Remote console control. There are AMT commands to expose a VNC
   remote console on the box. Want to support those.

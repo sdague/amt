@@ -1,0 +1,60 @@
+#!/usr/bin/env python
+
+import argparse
+import os
+from pprint import pprint
+import sys
+
+import requests
+
+import amt.client
+import amt.hostdb
+import amt.wsman
+
+
+def main():
+    parser = argparse.ArgumentParser(description="amthostdb lets you configure the host database for amtctrl")
+    subparsers = parser.add_subparsers(dest='command')
+
+    parser_list = subparsers.add_parser('list', help='list all servers registered')
+
+    parser_get = subparsers.add_parser('get', help='return info for a server')
+    parser_get.add_argument('server', metavar='name', help='server name')
+
+    parser_set = subparsers.add_parser('set', help='register a server')
+    parser_set.add_argument('server', metavar='name', help='server name')
+    parser_set.add_argument('host', metavar='host')
+    parser_set.add_argument('passwd', metavar='passwd')
+    parser_set.add_argument('-S', '--scheme', metavar='scheme', default='http', choices=['http', 'https'])
+    parser_set.add_argument('--tls-ca', metavar='filename')
+    parser_set.add_argument('--tls-key', metavar='filename')
+    parser_set.add_argument('--tls-cert', metavar='filename')
+    parser_set.add_argument('-V', '--vncpasswd', metavar='vncpasswd')
+
+    parser_rm = subparsers.add_parser('rm', help='unregister a server')
+    parser_rm.add_argument('server', metavar='name', help='server name')
+
+    args = parser.parse_args()
+    db = amt.hostdb.HostDB()
+
+    try:
+        if args.command == 'list':
+            db.list_servers()
+        elif args.command == 'get':
+            server = db.get_server(args.server)
+            print('%s => %s' % (args.server, server['host']))
+        elif args.command == 'set':
+            db.set_server(args.server, args.host, args.passwd,
+                             args.vncpasswd, scheme=args.scheme,
+                             ca=args.tls_ca, key=args.tls_key,
+                             cert=args.tls_cert)
+        elif args.command == 'rm':
+            db.rm_server(args.server)
+        else:
+            parser.error("No command specified")
+    except requests.exceptions.HTTPError as e:
+        print('Error: %s' % e)
+
+
+if __name__ == '__main__':
+    sys.exit(main())
